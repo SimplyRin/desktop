@@ -45,6 +45,14 @@ const installedAppExecutablePath = process.env.DESKTOP_E2E_APP_PATH
 const e2eAppMode = process.env.DESKTOP_E2E_APP_MODE ?? 'packaged'
 const unpackagedAppEntryPoint = path.join(projectRoot, 'out', 'main.js')
 
+const getAppArguments = () => [
+  ...(process.platform === 'linux'
+    ? ['--no-sandbox', '--disable-dev-shm-usage']
+    : []),
+  `--user-data-dir=${userDataDir}`,
+  `--cli-open=${smokeRepoPath}`,
+]
+
 function getPackagedAppExecutablePath() {
   const distPath = getDistPath()
 
@@ -73,25 +81,21 @@ function getE2ELaunchOptions() {
   if (installedAppExecutablePath !== undefined) {
     return {
       executablePath: installedAppExecutablePath,
-      args: [`--user-data-dir=${userDataDir}`, `--cli-open=${smokeRepoPath}`],
+      args: getAppArguments(),
       missingPath: installedAppExecutablePath,
     }
   }
 
   if (e2eAppMode === 'unpackaged') {
     return {
-      args: [
-        unpackagedAppEntryPoint,
-        `--user-data-dir=${userDataDir}`,
-        `--cli-open=${smokeRepoPath}`,
-      ],
+      args: [unpackagedAppEntryPoint, ...getAppArguments()],
       missingPath: unpackagedAppEntryPoint,
     }
   }
 
   return {
     executablePath: e2eAppExecutablePath,
-    args: [`--user-data-dir=${userDataDir}`, `--cli-open=${smokeRepoPath}`],
+    args: getAppArguments(),
     missingPath: e2eAppExecutablePath,
   }
 }

@@ -139,8 +139,15 @@ jobs:
         run: |
           echo "DESKTOP_E2E_APP_PATH=$PWD/dist/desktop-linux-x64/desktop" >> "$GITHUB_ENV"
 
+      - name: Validate packaged executable
+        run: |
+          test -x "$DESKTOP_E2E_APP_PATH"
+          ldd "$DESKTOP_E2E_APP_PATH"
+
       - name: Run packaged E2E smoke tests
         run: xvfb-run --auto-servernum yarn test:e2e:run:packaged
+        env:
+          DEBUG: pw:browser*
 
       - name: Upload E2E artifacts
         if: ${{ failure() }}

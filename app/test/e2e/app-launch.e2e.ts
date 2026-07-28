@@ -112,9 +112,12 @@ test.describe('GitHub Desktop - App Launch', () => {
     )
 
     // ── Welcome flow ────────────────────────────────────────────────
-    const skipButton = page.locator('a.skip-button')
-    await skipButton.waitFor({ state: 'visible', timeout: 30000 })
-    await skipButton.click()
+    const welcomeButton =
+      process.platform === 'linux'
+        ? page.getByRole('button', { name: 'Continue' })
+        : page.locator('a.skip-button')
+    await welcomeButton.waitFor({ state: 'visible', timeout: 30000 })
+    await welcomeButton.click()
 
     const nameInput = page.locator('input[placeholder="Your Name"]')
     await nameInput.waitFor({ state: 'visible', timeout: 15000 })
