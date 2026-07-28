@@ -24,6 +24,7 @@ import {
   getSmokeRepoStatus,
 } from './test-helpers'
 import { getVersion } from '../../package-info'
+import { getSHA } from '../../git-info'
 import type { Locator, Page } from '@playwright/test'
 
 // All tests run sequentially in the same Electron session.
@@ -289,7 +290,9 @@ test.describe('Auto-update', () => {
   })
 
   test.describe('About dialog', () => {
-    test('shows the current version', async ({ mainWindow: page }) => {
+    test('shows the current version or development build', async ({
+      mainWindow: page,
+    }) => {
       await page.evaluate(() => {
         require('electron').ipcRenderer.emit('menu-event', {}, 'show-about')
       })
@@ -297,15 +300,24 @@ test.describe('Auto-update', () => {
       const aboutDialog = page.locator('#about')
       await aboutDialog.waitFor({ state: 'visible', timeout: 5000 })
 
-      const versionText = await aboutDialog
-        .locator('.selectable-text')
-        .textContent()
-      expect(versionText).toMatch(/Version \d+\.\d+\.\d+/)
+      const expectedVersionText =
+        releaseChannel === 'development'
+          ? `Build ${getSHA().substring(0, 10)} (${process.arch})`
+          : `Version ${getVersion()} (${process.arch})`
+
+      await expect(aboutDialog.locator('.selectable-text')).toHaveText(
+        expectedVersionText
+      )
     })
 
     test('shows up-to-date status after no-update check', async ({
       mainWindow: page,
     }) => {
+      test.skip(
+        process.platform === 'linux',
+        'Auto-update is disabled for Linux builds.'
+      )
+
       if (!shouldAutoCheckForUpdatesOnLaunch) {
         await clickCheckForUpdatesIfAvailable(page)
       }
@@ -329,6 +341,11 @@ test.describe('Auto-update', () => {
   })
 
   test.describe('update available', () => {
+    test.skip(
+      process.platform === 'linux',
+      'Auto-update is disabled for Linux builds.'
+    )
+
     test('switches mock server to return an update', async ({}) => {
       await controlMockServer('reset-requests')
       await controlMockServer('set-behavior/update-available')
