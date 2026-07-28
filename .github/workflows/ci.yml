@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - release-linux
+    tags:
+      - '*'
   pull_request:
     branches:
       - release-linux
@@ -59,9 +61,9 @@ on:
 
 env:
   NODE_VERSION: 24.15.0
-  DESKTOP_ERROR_REPORTING_ENDPOINT: ${{ inputs.error-reporting-endpoint }}
+  DESKTOP_ERROR_REPORTING_ENDPOINT: ${{ inputs['error-reporting-endpoint'] }}
   DESKTOP_NON_FATAL_ERROR_REPORTING_ENDPOINT:
-    ${{ inputs.non-fatal-error-reporting-endpoint }}
+    ${{ inputs['non-fatal-error-reporting-endpoint'] }}
 
 jobs:
   build-linux:
@@ -71,14 +73,16 @@ jobs:
     permissions:
       contents: read
     env:
-      RELEASE_CHANNEL: ${{ inputs.environment || 'development' }}
+      RELEASE_CHANNEL:
+        ${{ startsWith(github.ref, 'refs/tags/') && 'production' ||
+        inputs.environment || 'development' }}
       npm_config_arch: x64
       TARGET_ARCH: x64
     steps:
       - uses: actions/checkout@v7
         with:
           repository: ${{ inputs.repository || github.repository }}
-          ref: ${{ inputs.ref }}
+          ref: ${{ inputs.ref || github.ref }}
           submodules: recursive
 
       - name: Install Linux build and test dependencies
@@ -126,7 +130,7 @@ jobs:
 
       - name: Upload Linux artifacts
         uses: actions/upload-artifact@v7
-        if: ${{ inputs.upload-artifacts }}
+        if: ${{ github.event_name == 'push' || inputs['upload-artifacts'] }}
         with:
           name: Ubuntu-x64
           path: |
@@ -151,9 +155,46 @@ jobs:
           DEBUG: pw:browser*
 
       - name: Upload E2E artifacts
-        if: ${{ failure() }}
+        if:
+          ${{ !cancelled() && (github.event_name == 'push' ||
+          inputs['upload-artifacts']) }}
         uses: actions/upload-artifact@v7
         with:
           name: e2e-Ubuntu-x64
           path: playwright-videos/**
           if-no-files-found: warn
+
+  release:
+    name: Create GitHub Release
+    if: ${{ startsWith(github.ref, 'refs/tags/') }}
+    needs: build-linux
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Download Linux artifacts
+        uses: actions/download-artifact@v7
+        with:
+          name: Ubuntu-x64
+          path: dist
+
+      - name: Create or update release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          release_files=(
+            dist/GitHubDesktop-linux-x64.deb
+            dist/GitHubDesktop-linux-x64.tar.gz
+          )
+
+          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" "${release_files[@]}" \
+              --clobber \
+              --repo "$GITHUB_REPOSITORY"
+          else
+            gh release create "$GITHUB_REF_NAME" "${release_files[@]}" \
+              --generate-notes \
+              --title "$GITHUB_REF_NAME" \
+              --verify-tag \
+              --repo "$GITHUB_REPOSITORY"
+          fi
