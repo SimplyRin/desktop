@@ -78,8 +78,20 @@ $ git-credential-manager configure
 $ git config --global credential.credentialStore secretservice
 ```
 
-After `yarn build:prod`, `yarn package` creates
-`dist/GitHubDesktop-linux-<architecture>.tar.gz`.
+After `yarn build:prod`, `yarn package` creates both a portable archive and a
+Debian package:
+
+```text
+dist/GitHubDesktop-linux-<architecture>.tar.gz
+dist/GitHubDesktop-linux-<architecture>.deb
+```
+
+Install and launch the Debian package with:
+
+```shellsession
+$ sudo apt install ./dist/GitHubDesktop-linux-x64.deb
+$ github-desktop
+```
 
 ## Back to setup
 

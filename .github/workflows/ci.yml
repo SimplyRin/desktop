@@ -131,6 +131,7 @@ jobs:
           name: Ubuntu-x64
           path: |
             dist/GitHubDesktop-linux-x64.tar.gz
+            dist/GitHubDesktop-linux-x64.deb
             dist/bundle-size.json
             dist/bundle-hash.json
           if-no-files-found: error

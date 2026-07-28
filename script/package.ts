@@ -18,9 +18,17 @@ import {
   getDistArchitecture,
   getIconDirectory,
   getLinuxArchivePath,
+  getLinuxDebPath,
 } from './dist-info'
 import { isGitHubActions } from './build-platforms'
-import { existsSync, rmSync, writeFileSync } from 'fs'
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from 'fs'
 import { getVersion } from '../app/package-info'
 import { computeBundleHashSync } from '../app/src/lib/compute-bundle-hash'
 import { rename } from 'fs/promises'
@@ -73,15 +81,111 @@ function packageOSX() {
 }
 
 function packageLinux() {
-  const dest = getLinuxArchivePath()
-  rmSync(dest, { force: true })
+  const archivePath = getLinuxArchivePath()
+  rmSync(archivePath, { force: true })
 
-  console.log('Packaging for Linux…')
+  console.log('Packaging Linux archive…')
   cp.execFileSync(
     'tar',
-    ['-czf', dest, '-C', path.dirname(distPath), path.basename(distPath)],
+    [
+      '-czf',
+      archivePath,
+      '-C',
+      path.dirname(distPath),
+      path.basename(distPath),
+    ],
     { stdio: 'inherit' }
   )
+
+  packageLinuxDeb()
+}
+
+function packageLinuxDeb() {
+  const packageRoot = path.join(outputDir, '.debian-package')
+  const installRoot = path.join(packageRoot, 'opt', 'github-desktop')
+  const binRoot = path.join(packageRoot, 'usr', 'bin')
+  const applicationsRoot = path.join(
+    packageRoot,
+    'usr',
+    'share',
+    'applications'
+  )
+  const iconsRoot = path.join(
+    packageRoot,
+    'usr',
+    'share',
+    'icons',
+    'hicolor',
+    '512x512',
+    'apps'
+  )
+  const controlRoot = path.join(packageRoot, 'DEBIAN')
+  const debPath = getLinuxDebPath()
+  const debArchitecture = getDistArchitecture() === 'arm64' ? 'arm64' : 'amd64'
+
+  rmSync(packageRoot, { recursive: true, force: true })
+  rmSync(debPath, { force: true })
+
+  try {
+    mkdirSync(path.dirname(installRoot), { recursive: true })
+    cpSync(distPath, installRoot, {
+      recursive: true,
+      verbatimSymlinks: true,
+    })
+
+    mkdirSync(binRoot, { recursive: true })
+    symlinkSync(
+      '/opt/github-desktop/desktop',
+      path.join(binRoot, 'github-desktop')
+    )
+
+    mkdirSync(applicationsRoot, { recursive: true })
+    writeFileSync(
+      path.join(applicationsRoot, 'github-desktop.desktop'),
+      `[Desktop Entry]
+Name=GitHub Desktop
+Comment=Simple collaboration from your desktop
+Exec=/usr/bin/github-desktop %U
+Terminal=false
+Type=Application
+Icon=github-desktop
+Categories=Development;RevisionControl;
+MimeType=x-scheme-handler/x-github-client;
+`
+    )
+
+    mkdirSync(iconsRoot, { recursive: true })
+    cpSync(
+      path.join(__dirname, '..', 'app', 'static', 'linux', 'icon-logo.png'),
+      path.join(iconsRoot, 'github-desktop.png')
+    )
+
+    mkdirSync(controlRoot, { recursive: true })
+    writeFileSync(
+      path.join(controlRoot, 'control'),
+      `Package: github-desktop
+Version: ${getVersion()}
+Section: devel
+Priority: optional
+Architecture: ${debArchitecture}
+Maintainer: ${getCompanyName()} <opensource+desktop@github.com>
+Depends: libgtk-3-0 | libgtk-3-0t64, libnotify4, libnss3, libxss1, libxtst6, xdg-utils, libatspi2.0-0, libuuid1, libsecret-1-0, libasound2 | libasound2t64, libgbm1
+Homepage: https://desktop.github.com/
+Description: GitHub Desktop for Linux
+ Simple collaboration from your desktop. HTTPS authentication is delegated
+ to Git Credential Manager.
+`
+    )
+
+    console.log('Packaging Linux Debian package…')
+    cp.execFileSync(
+      'dpkg-deb',
+      ['--root-owner-group', '--build', packageRoot, debPath],
+      { stdio: 'inherit' }
+    )
+  } finally {
+    rmSync(packageRoot, { recursive: true, force: true })
+  }
 }
 
 function packageWindows() {

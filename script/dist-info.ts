@@ -48,6 +48,14 @@ export function getLinuxArchivePath() {
   return Path.join(getDistRoot(), getLinuxArchiveName())
 }
 
+export function getLinuxDebName() {
+  return `GitHubDesktop-linux-${getDistArchitecture()}.deb`
+}
+
+export function getLinuxDebPath() {
+  return Path.join(getDistRoot(), getLinuxDebName())
+}
+
 export function getWindowsInstallerName() {
   const productName = getExecutableName()
   return `${productName}Setup-${getDistArchitecture()}.msi`
