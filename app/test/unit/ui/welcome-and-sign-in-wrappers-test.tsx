@@ -12,7 +12,9 @@ import { SignInStep } from '../../../src/lib/stores/sign-in-store'
 import type { Dispatcher } from '../../../src/ui/dispatcher'
 import { ConfigureGit } from '../../../src/ui/welcome/configure-git'
 import { SignInEnterprise } from '../../../src/ui/welcome/sign-in-enterprise'
+import { Start } from '../../../src/ui/welcome/start'
 import { SignIn } from '../../../src/ui/lib/sign-in'
+import { useExternalCredentialHelperForAllHosts } from '../../../src/lib/trampoline/use-external-credential-helper'
 import { fireEvent, render, screen } from '../../helpers/ui/render'
 
 function noopResultCallback() {}
@@ -73,6 +75,37 @@ function createExistingAccountWarningState(): IExistingAccountWarning {
 }
 
 describe('welcome and sign-in wrappers', () => {
+  it('uses the GCM-only welcome flow on Linux', () => {
+    const originalLinux = __LINUX__
+    const advancedSteps = new Array<string>()
+
+    Object.assign(globalThis, { __LINUX__: true })
+
+    try {
+      assert.equal(useExternalCredentialHelperForAllHosts(), true)
+
+      render(
+        <Start
+          advance={step => advancedSteps.push(step)}
+          dispatcher={toDispatcher(new TestDispatcher())}
+          loadingBrowserAuth={false}
+        />
+      )
+
+      assert.ok(
+        screen.getByText('This Linux build uses Git Credential Manager', {
+          exact: false,
+        })
+      )
+      assert.equal(screen.queryByText('Sign in to GitHub.com'), null)
+
+      fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
+      assert.deepEqual(advancedSteps, ['ConfigureGit'])
+    } finally {
+      Object.assign(globalThis, { __LINUX__: originalLinux })
+    }
+  })
+
   it('submits enterprise endpoints through the shared sign-in wrapper', () => {
     const dispatcher = new TestDispatcher()
 

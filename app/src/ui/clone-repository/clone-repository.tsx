@@ -269,14 +269,16 @@ export class CloneRepository extends React.Component<
         onDismissed={this.props.onDismissed}
         loading={this.state.loading}
       >
-        <TabBar
-          onTabClicked={this.onTabClicked}
-          selectedIndex={this.props.selectedTab}
-        >
-          <span id="dotcom-tab">GitHub.com</span>
-          <span id="enterprise-tab">GitHub Enterprise</span>
-          <span id="url-tab">URL</span>
-        </TabBar>
+        {!__LINUX__ && (
+          <TabBar
+            onTabClicked={this.onTabClicked}
+            selectedIndex={this.props.selectedTab}
+          >
+            <span id="dotcom-tab">GitHub.com</span>
+            <span id="enterprise-tab">GitHub Enterprise</span>
+            <span id="url-tab">URL</span>
+          </TabBar>
+        )}
 
         {error ? <DialogError>{error.message}</DialogError> : null}
 

@@ -125,31 +125,41 @@ export class Advanced extends React.Component<
         </div>
         <h2>Network and credentials</h2>
         {this.renderSSHSettings()}
-        <div className="advanced-section">
-          <Checkbox
-            label={'Use Git Credential Manager'}
-            value={
-              this.state.useExternalCredentialHelper
-                ? CheckboxValue.On
-                : CheckboxValue.Off
-            }
-            onChange={this.onUseExternalCredentialHelperChanged}
-            ariaDescribedBy="use-external-credential-helper-description"
-          />
-          <div
-            id="use-external-credential-helper-description"
-            className="settings-description"
-          >
+        {!__LINUX__ && (
+          <div className="advanced-section">
+            <Checkbox
+              label={'Use Git Credential Manager'}
+              value={
+                this.state.useExternalCredentialHelper
+                  ? CheckboxValue.On
+                  : CheckboxValue.Off
+              }
+              onChange={this.onUseExternalCredentialHelperChanged}
+              ariaDescribedBy="use-external-credential-helper-description"
+            />
+            <div
+              id="use-external-credential-helper-description"
+              className="settings-description"
+            >
+              <p>
+                Use{' '}
+                <LinkButton uri="https://gh.io/gcm">
+                  Git Credential Manager{' '}
+                </LinkButton>{' '}
+                for private repositories outside of GitHub.com. This feature is
+                experimental and subject to change.
+              </p>
+            </div>
+          </div>
+        )}
+        {__LINUX__ && (
+          <div className="advanced-section settings-description">
             <p>
-              Use{' '}
-              <LinkButton uri="https://gh.io/gcm">
-                Git Credential Manager{' '}
-              </LinkButton>{' '}
-              for private repositories outside of GitHub.com. This feature is
-              experimental and subject to change.
+              Git Credential Manager is always used for HTTPS authentication on
+              Linux.
             </p>
           </div>
-        </div>
+        )}
       </DialogContent>
     )
   }

@@ -6,6 +6,7 @@ You will need to install these tools on your machine:
  - Yarn
  - Python 3
  - Electron dependencies
+ - Git Credential Manager
 
 ## Node.js
 
@@ -58,8 +59,27 @@ $ sudo dnf install -y libsecret-devel libXScrnSaver
 ### Ubuntu 14.04 and later
 
 ```shellsession
-$ sudo apt install libsecret-1-dev libgconf-2-4
+$ sudo apt install build-essential libsecret-1-dev
 ```
+
+## Git Credential Manager
+
+Linux builds do not provide GitHub Desktop account sign-in. All HTTPS Git
+authentication, including GitHub.com and GitHub Enterprise, is delegated to
+Git Credential Manager (GCM). Follow the [official Linux installation
+instructions](https://github.com/git-ecosystem/git-credential-manager/blob/main/docs/install.md#linux)
+and make sure `git-credential-manager` is available on `PATH`.
+
+GCM also requires a credential store on Linux. For a GNOME/Ubuntu desktop,
+Secret Service is the usual choice:
+
+```shellsession
+$ git-credential-manager configure
+$ git config --global credential.credentialStore secretservice
+```
+
+After `yarn build:prod`, `yarn package` creates
+`dist/GitHubDesktop-linux-<architecture>.tar.gz`.
 
 ## Back to setup
 

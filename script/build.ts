@@ -172,10 +172,17 @@ function packageApp() {
 
   const iconPath = getIconDirectory()
   const assetsCarPath = join(iconPath, 'Assets.car')
-  assert(
-    existsSync(assetsCarPath),
-    `Unable to find Assets.car at ${assetsCarPath}`
-  )
+  if (process.platform === 'darwin') {
+    assert(
+      existsSync(assetsCarPath),
+      `Unable to find Assets.car at ${assetsCarPath}`
+    )
+  }
+
+  const appIcon =
+    process.platform === 'linux'
+      ? join(projectRoot, 'app', 'static', 'linux', 'icon-logo.png')
+      : join(iconPath, 'icon-logo')
 
   return packager({
     name: getExecutableName(),
@@ -183,8 +190,8 @@ function packageApp() {
     arch: toPackageArch(process.env.TARGET_ARCH),
     asar: false, // TODO: Probably wanna enable this down the road.
     out: getDistRoot(),
-    icon: join(iconPath, 'icon-logo'),
-    extraResource: [assetsCarPath],
+    icon: appIcon,
+    extraResource: process.platform === 'darwin' ? [assetsCarPath] : [],
     dir: outRoot,
     overwrite: true,
     tmpdir: false,

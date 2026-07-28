@@ -40,6 +40,14 @@ export function getOSXZipPath() {
   return Path.join(getDistPath(), '..', getOSXZipName())
 }
 
+export function getLinuxArchiveName() {
+  return `GitHubDesktop-linux-${getDistArchitecture()}.tar.gz`
+}
+
+export function getLinuxArchivePath() {
+  return Path.join(getDistRoot(), getLinuxArchiveName())
+}
+
 export function getWindowsInstallerName() {
   const productName = getExecutableName()
   return `${productName}Setup-${getDistArchitecture()}.msi`

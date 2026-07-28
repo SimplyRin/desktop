@@ -25,6 +25,10 @@ interface IStartProps {
 /** The first step of the Welcome flow. */
 export class Start extends React.Component<IStartProps, {}> {
   public render() {
+    if (__LINUX__) {
+      return this.renderLinuxWelcome()
+    }
+
     return (
       <section
         id="start"
@@ -101,6 +105,39 @@ export class Start extends React.Component<IStartProps, {}> {
             <LinkButton uri={SamplesURL}>
               Learn more about user metrics.
             </LinkButton>
+          </p>
+        </div>
+      </section>
+    )
+  }
+
+  private renderLinuxWelcome() {
+    return (
+      <section
+        id="start"
+        aria-label="Welcome to GitHub Desktop"
+        aria-describedby="start-description"
+      >
+        <div className="start-content">
+          <h1 className="welcome-title">
+            Welcome to <span>GitHub Desktop</span>
+          </h1>
+          <p id="start-description" className="welcome-text">
+            This Linux build uses Git Credential Manager for HTTPS
+            authentication. GitHub Desktop does not store an account or OAuth
+            token.
+          </p>
+          <div className="welcome-main-buttons">
+            <Button type="submit" onClick={this.skip} autoFocus={true}>
+              Continue
+            </Button>
+          </div>
+        </div>
+
+        <div className="start-footer">
+          <p>
+            Install and configure Git Credential Manager before cloning or
+            accessing a private HTTPS repository.
           </p>
         </div>
       </section>

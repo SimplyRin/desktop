@@ -17,6 +17,7 @@ import {
   getDistRoot,
   getDistArchitecture,
   getIconDirectory,
+  getLinuxArchivePath,
 } from './dist-info'
 import { isGitHubActions } from './build-platforms'
 import { existsSync, rmSync, writeFileSync } from 'fs'
@@ -40,6 +41,8 @@ if (process.platform === 'darwin') {
   packageOSX()
 } else if (process.platform === 'win32') {
   packageWindows()
+} else if (process.platform === 'linux') {
+  packageLinux()
 } else {
   console.error(`I don't know how to package for ${process.platform} :(`)
   process.exit(1)
@@ -66,6 +69,18 @@ function packageOSX() {
   console.log('Packaging for macOS…')
   cp.execSync(
     `ditto -ck --keepParent "${distPath}/${productName}.app" "${dest}"`
+  )
+}
+
+function packageLinux() {
+  const dest = getLinuxArchivePath()
+  rmSync(dest, { force: true })
+
+  console.log('Packaging for Linux…')
+  cp.execFileSync(
+    'tar',
+    ['-czf', dest, '-C', path.dirname(distPath), path.basename(distPath)],
+    { stdio: 'inherit' }
   )
 }
 
