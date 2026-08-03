@@ -405,8 +405,11 @@ import { parseRepoRules, useRepoRulesLogic } from '../helpers/repo-rules'
 import { RepoRulesInfo } from '../../models/repo-rules'
 import {
   setUseExternalCredentialHelper,
+  setUseExternalCredentialHelperForAllHosts,
   useExternalCredentialHelper,
   useExternalCredentialHelperDefault,
+  useExternalCredentialHelperForAllHosts,
+  useExternalCredentialHelperForAllHostsDefault,
 } from '../trampoline/use-external-credential-helper'
 import { IOAuthAction } from '../parse-app-url'
 import {
@@ -646,6 +649,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     askToMoveToApplicationsFolderDefault
   private useExternalCredentialHelper: boolean =
     useExternalCredentialHelperDefault
+  private useExternalCredentialHelperForAllHosts: boolean =
+    useExternalCredentialHelperForAllHostsDefault
   private askForConfirmationOnRepositoryRemoval: boolean =
     confirmRepoRemovalDefault
   private confirmDiscardChanges: boolean = confirmDiscardChangesDefault
@@ -690,7 +695,9 @@ export class AppStore extends TypedBaseStore<IAppState> {
     | ((repository: Repository | null) => void)
     | null = null
 
-  private selectedCloneRepositoryTab = CloneRepositoryTab.DotCom
+  private selectedCloneRepositoryTab = useExternalCredentialHelperForAllHosts()
+    ? CloneRepositoryTab.Generic
+    : CloneRepositoryTab.DotCom
 
   private selectedBranchesTab = BranchesTab.Branches
   private selectedTheme = ApplicationTheme.System
@@ -1297,6 +1304,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       askToMoveToApplicationsFolderSetting:
         this.askToMoveToApplicationsFolderSetting,
       useExternalCredentialHelper: this.useExternalCredentialHelper,
+      useExternalCredentialHelperForAllHosts:
+        this.useExternalCredentialHelperForAllHosts,
       askForConfirmationOnRepositoryRemoval:
         this.askForConfirmationOnRepositoryRemoval,
       askForConfirmationOnDiscardChanges: this.confirmDiscardChanges,
@@ -2469,6 +2478,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     )
 
     this.useExternalCredentialHelper = useExternalCredentialHelper()
+    this.useExternalCredentialHelperForAllHosts =
+      useExternalCredentialHelperForAllHosts()
 
     this.askForConfirmationOnRepositoryRemoval = getBoolean(
       confirmRepoRemovalKey,
@@ -7688,6 +7699,25 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _setUseExternalCredentialHelper(value: boolean) {
     setUseExternalCredentialHelper(value)
     this.useExternalCredentialHelper = value
+    this.emitUpdate()
+  }
+
+  public _setUseExternalCredentialHelperForAllHosts(value: boolean) {
+    setUseExternalCredentialHelperForAllHosts(value)
+    this.useExternalCredentialHelperForAllHosts = value
+    // Delegating GitHub hosts implies delegating third-party hosts too, so keep
+    // the state we surface in sync with what the helper will actually do.
+    this.useExternalCredentialHelper = useExternalCredentialHelper()
+
+    // The GitHub.com and Enterprise clone tabs are hidden while this is on, so
+    // don't leave the dialog pointing at a tab the user can't see.
+    if (
+      value &&
+      this.selectedCloneRepositoryTab !== CloneRepositoryTab.Generic
+    ) {
+      this.selectedCloneRepositoryTab = CloneRepositoryTab.Generic
+    }
+
     this.emitUpdate()
   }
 

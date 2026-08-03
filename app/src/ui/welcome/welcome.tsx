@@ -24,6 +24,7 @@ interface IWelcomeProps {
   readonly dispatcher: Dispatcher
   readonly accounts: ReadonlyArray<Account>
   readonly signInState: SignInState | null
+  readonly useExternalCredentialHelperForAllHosts: boolean
 }
 
 interface IWelcomeState {
@@ -169,6 +170,9 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
             advance={this.advanceToStep}
             dispatcher={this.props.dispatcher}
             loadingBrowserAuth={loadingBrowserAuth}
+            useExternalCredentialHelperForAllHosts={
+              this.props.useExternalCredentialHelperForAllHosts
+            }
           />
         )
 

@@ -3,7 +3,7 @@
   "productName": "GitPeach Desktop",
   "bundleID": "net.simplyrin.GitPeachClient",
   "companyName": "SimplyRin",
-  "version": "3.6.4-beta1",
+  "version": "3.6.3",
   "main": "./main.js",
   "repository": {
     "type": "git",

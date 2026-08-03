@@ -1671,6 +1671,10 @@ export class Dispatcher {
     )
   }
 
+  public setUseExternalCredentialHelperForAllHosts(value: boolean) {
+    return this.appStore._setUseExternalCredentialHelperForAllHosts(value)
+  }
+
   /** Moves the app to the /Applications folder on macOS. */
   public moveToApplicationsFolder() {
     return moveToApplicationsFolder()

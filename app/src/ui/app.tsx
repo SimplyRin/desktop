@@ -1755,6 +1755,9 @@ export class App extends React.Component<IAppProps, IAppState> {
             notificationsEnabled={this.state.notificationsEnabled}
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
             useExternalCredentialHelper={this.state.useExternalCredentialHelper}
+            useExternalCredentialHelperForAllHosts={
+              this.state.useExternalCredentialHelperForAllHosts
+            }
             repository={repository}
             onDismissed={onPopupDismissedFn}
             selectedShell={this.state.selectedShell}
@@ -1880,6 +1883,9 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             selectedTab={this.state.selectedCloneRepositoryTab}
             onTabSelected={this.onCloneRepositoriesTabSelected}
+            useExternalCredentialHelperForAllHosts={
+              this.state.useExternalCredentialHelperForAllHosts
+            }
             apiRepositories={this.state.apiRepositories}
             onRefreshRepositories={this.onRefreshRepositories}
             isTopMost={isTopMost}
@@ -4025,6 +4031,9 @@ export class App extends React.Component<IAppProps, IAppState> {
         dispatcher={this.props.dispatcher}
         accounts={this.state.accounts}
         signInState={this.state.signInState}
+        useExternalCredentialHelperForAllHosts={
+          this.state.useExternalCredentialHelperForAllHosts
+        }
       />
     )
   }

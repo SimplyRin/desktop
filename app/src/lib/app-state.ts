@@ -234,6 +234,12 @@ export interface IAppState {
   /** Whether we should use an external credential helper for third-party private repositories */
   readonly useExternalCredentialHelper: boolean
 
+  /**
+   * Whether the external credential helper should handle GitHub hosts too, in
+   * which case Desktop never asks the user to sign in to a GitHub account.
+   */
+  readonly useExternalCredentialHelperForAllHosts: boolean
+
   /** Whether we should show a confirmation dialog */
   readonly askForConfirmationOnRepositoryRemoval: boolean
 

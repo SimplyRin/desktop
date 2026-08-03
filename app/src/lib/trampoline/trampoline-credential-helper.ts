@@ -14,7 +14,10 @@ import {
   getTrampolineEnvironmentPath,
   setHasRejectedCredentialsForEndpoint,
 } from './trampoline-environment'
-import { useExternalCredentialHelper } from './use-external-credential-helper'
+import {
+  useExternalCredentialHelper,
+  useExternalCredentialHelperForAllHosts,
+} from './use-external-credential-helper'
 import {
   findGenericTrampolineAccount,
   findGitHubTrampolineAccount,
@@ -92,6 +95,10 @@ async function getExternalCredential(input: Credential, token: string) {
 
 /** Implementation of the 'get' git credential helper command */
 async function getCredential(cred: Credential, store: Store, token: string) {
+  if (useExternalCredentialHelperForAllHosts()) {
+    return getExternalCredential(cred, token)
+  }
+
   const ghCred = await getGitHubCredential(cred, store)
 
   if (ghCred) {
@@ -180,6 +187,10 @@ const getEndpointKind = async (cred: Credential, store: Store) => {
 
 /** Implementation of the 'store' git credential helper command */
 async function storeCredential(cred: Credential, store: Store, token: string) {
+  if (useExternalCredentialHelperForAllHosts()) {
+    return storeExternalCredential(cred, token)
+  }
+
   if ((await getEndpointKind(cred, store)) !== 'generic') {
     return
   }
@@ -200,6 +211,10 @@ const storeExternalCredential = (cred: Credential, token: string) => {
 
 /** Implementation of the 'erase' git credential helper command */
 async function eraseCredential(cred: Credential, store: Store, token: string) {
+  if (useExternalCredentialHelperForAllHosts()) {
+    return eraseExternalCredential(cred, token)
+  }
+
   if ((await getEndpointKind(cred, store)) !== 'generic') {
     return
   }

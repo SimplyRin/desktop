@@ -13,6 +13,7 @@ import type { Dispatcher } from '../../../src/ui/dispatcher'
 import { ConfigureGit } from '../../../src/ui/welcome/configure-git'
 import { SignInEnterprise } from '../../../src/ui/welcome/sign-in-enterprise'
 import { SignIn } from '../../../src/ui/lib/sign-in'
+import { Start } from '../../../src/ui/welcome/start'
 import { fireEvent, render, screen } from '../../helpers/ui/render'
 
 function noopResultCallback() {}
@@ -73,6 +74,42 @@ function createExistingAccountWarningState(): IExistingAccountWarning {
 }
 
 describe('welcome and sign-in wrappers', () => {
+  it('offers GitHub sign-in on the first welcome step by default', () => {
+    render(
+      <Start
+        advance={() => {}}
+        dispatcher={toDispatcher(new TestDispatcher())}
+        loadingBrowserAuth={false}
+        useExternalCredentialHelperForAllHosts={false}
+      />
+    )
+
+    assert.ok(screen.getByRole('link', { name: /Sign in to GitHub\.com/ }))
+  })
+
+  it('skips sign-in when the credential helper handles all hosts', () => {
+    const advancedSteps = new Array<string>()
+
+    render(
+      <Start
+        advance={step => advancedSteps.push(step)}
+        dispatcher={toDispatcher(new TestDispatcher())}
+        loadingBrowserAuth={false}
+        useExternalCredentialHelperForAllHosts={true}
+      />
+    )
+
+    assert.ok(
+      screen.getByText('This installation uses Git Credential Manager', {
+        exact: false,
+      })
+    )
+    assert.equal(screen.queryByRole('link', { name: /Sign in to/ }), null)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
+    assert.deepEqual(advancedSteps, ['ConfigureGit'])
+  })
+
   it('submits enterprise endpoints through the shared sign-in wrapper', () => {
     const dispatcher = new TestDispatcher()
 

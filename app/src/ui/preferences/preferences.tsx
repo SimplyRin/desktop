@@ -93,6 +93,7 @@ interface IPreferencesProps {
   readonly notificationsEnabled: boolean
   readonly optOutOfUsageTracking: boolean
   readonly useExternalCredentialHelper: boolean
+  readonly useExternalCredentialHelperForAllHosts: boolean
   readonly initialSelectedTab?: PreferencesTab
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
@@ -139,6 +140,7 @@ interface IPreferencesState {
   readonly notificationsEnabled: boolean
   readonly optOutOfUsageTracking: boolean
   readonly useExternalCredentialHelper: boolean
+  readonly useExternalCredentialHelperForAllHosts: boolean
   readonly confirmRepositoryRemoval: boolean
   readonly confirmDiscardChanges: boolean
   readonly confirmDiscardChangesPermanently: boolean
@@ -212,7 +214,11 @@ export class Preferences extends React.Component<
     super(props)
 
     this.state = {
-      selectedIndex: this.props.initialSelectedTab || PreferencesTab.Accounts,
+      selectedIndex:
+        this.props.initialSelectedTab ??
+        (props.useExternalCredentialHelperForAllHosts
+          ? PreferencesTab.Git
+          : PreferencesTab.Accounts),
       committerName: '',
       committerEmail: '',
       defaultBranch: '',
@@ -230,6 +236,8 @@ export class Preferences extends React.Component<
       notificationsEnabled: true,
       optOutOfUsageTracking: false,
       useExternalCredentialHelper: false,
+      useExternalCredentialHelperForAllHosts:
+        this.props.useExternalCredentialHelperForAllHosts,
       confirmRepositoryRemoval: false,
       confirmDiscardChanges: false,
       confirmDiscardChangesPermanently: false,
@@ -317,6 +325,8 @@ export class Preferences extends React.Component<
       notificationsEnabled: this.props.notificationsEnabled,
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
       useExternalCredentialHelper: this.props.useExternalCredentialHelper,
+      useExternalCredentialHelperForAllHosts:
+        this.props.useExternalCredentialHelperForAllHosts,
       confirmRepositoryRemoval: this.props.confirmRepositoryRemoval,
       confirmDiscardChanges: this.props.confirmDiscardChanges,
       confirmDiscardChangesPermanently:
@@ -388,10 +398,12 @@ export class Preferences extends React.Component<
             selectedIndex={this.tabToVisualIndex(this.state.selectedIndex)}
             type={TabBarType.Vertical}
           >
-            <span id={this.getTabId(PreferencesTab.Accounts)}>
-              <Octicon className="icon" symbol={octicons.home} />
-              Accounts
-            </span>
+            {!this.props.useExternalCredentialHelperForAllHosts && (
+              <span id={this.getTabId(PreferencesTab.Accounts)}>
+                <Octicon className="icon" symbol={octicons.home} />
+                Accounts
+              </span>
+            )}
             <span id={this.getTabId(PreferencesTab.Integrations)}>
               <Octicon className="icon" symbol={octicons.person} />
               Integrations
@@ -729,11 +741,17 @@ export class Preferences extends React.Component<
             useWindowsOpenSSH={this.state.useWindowsOpenSSH}
             optOutOfUsageTracking={this.state.optOutOfUsageTracking}
             useExternalCredentialHelper={this.state.useExternalCredentialHelper}
+            useExternalCredentialHelperForAllHosts={
+              this.state.useExternalCredentialHelperForAllHosts
+            }
             repositoryIndicatorsEnabled={this.state.repositoryIndicatorsEnabled}
             onUseWindowsOpenSSHChanged={this.onUseWindowsOpenSSHChanged}
             onOptOutofReportingChanged={this.onOptOutofReportingChanged}
             onUseExternalCredentialHelperChanged={
               this.onUseExternalCredentialHelperChanged
+            }
+            onUseExternalCredentialHelperForAllHostsChanged={
+              this.onUseExternalCredentialHelperForAllHostsChanged
             }
             onRepositoryIndicatorsEnabledChanged={
               this.onRepositoryIndicatorsEnabledChanged
@@ -801,6 +819,12 @@ export class Preferences extends React.Component<
 
   private onUseExternalCredentialHelperChanged = (value: boolean) => {
     this.setState({ useExternalCredentialHelper: value })
+  }
+
+  private onUseExternalCredentialHelperForAllHostsChanged = (
+    value: boolean
+  ) => {
+    this.setState({ useExternalCredentialHelperForAllHosts: value })
   }
 
   private onConfirmRepositoryRemovalChanged = (value: boolean) => {
@@ -1099,6 +1123,15 @@ export class Preferences extends React.Component<
       )
     }
 
+    if (
+      this.props.useExternalCredentialHelperForAllHosts !==
+      this.state.useExternalCredentialHelperForAllHosts
+    ) {
+      dispatcher.setUseExternalCredentialHelperForAllHosts(
+        this.state.useExternalCredentialHelperForAllHosts
+      )
+    }
+
     await dispatcher.setConfirmRepoRemovalSetting(
       this.state.confirmRepositoryRemoval
     )
@@ -1183,16 +1216,28 @@ export class Preferences extends React.Component<
   }
 
   private tabToVisualIndex(tab: PreferencesTab): number {
-    if (!this.isCopilotSdkEnabled && tab > PreferencesTab.Copilot) {
-      return tab - 1
-    }
-    return tab
+    const index = this.visibleTabs.indexOf(tab)
+    return index === -1 ? 0 : index
   }
 
   private visualIndexToTab(index: number): PreferencesTab {
-    if (!this.isCopilotSdkEnabled && index >= PreferencesTab.Copilot) {
-      return index + 1
-    }
-    return index
+    return this.visibleTabs[index] ?? this.visibleTabs[0]
+  }
+
+  /** The tabs rendered in the tab bar, in the order they appear. */
+  private get visibleTabs(): ReadonlyArray<PreferencesTab> {
+    return [
+      ...(this.props.useExternalCredentialHelperForAllHosts
+        ? []
+        : [PreferencesTab.Accounts]),
+      PreferencesTab.Integrations,
+      ...(this.isCopilotSdkEnabled ? [PreferencesTab.Copilot] : []),
+      PreferencesTab.Git,
+      PreferencesTab.Appearance,
+      PreferencesTab.Notifications,
+      PreferencesTab.Prompts,
+      PreferencesTab.Advanced,
+      PreferencesTab.Accessibility,
+    ]
   }
 }

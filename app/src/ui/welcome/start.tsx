@@ -20,11 +20,21 @@ interface IStartProps {
   readonly advance: (step: WelcomeStep) => void
   readonly dispatcher: Dispatcher
   readonly loadingBrowserAuth: boolean
+
+  /**
+   * Whether HTTPS authentication is fully delegated to Git Credential Manager,
+   * in which case there is no account to sign in to.
+   */
+  readonly useExternalCredentialHelperForAllHosts: boolean
 }
 
 /** The first step of the Welcome flow. */
 export class Start extends React.Component<IStartProps, {}> {
   public render() {
+    if (this.props.useExternalCredentialHelperForAllHosts) {
+      return this.renderCredentialHelperWelcome()
+    }
+
     return (
       <section
         id="start"
@@ -96,8 +106,51 @@ export class Start extends React.Component<IStartProps, {}> {
             </LinkButton>
           </p>
           <p>
-            GitPeach Desktop sends usage metrics to improve the product and inform
-            feature decisions.{' '}
+            GitPeach Desktop sends usage metrics to improve the product and
+            inform feature decisions.{' '}
+            <LinkButton uri={SamplesURL}>
+              Learn more about user metrics.
+            </LinkButton>
+          </p>
+        </div>
+      </section>
+    )
+  }
+
+  private renderCredentialHelperWelcome() {
+    return (
+      <section
+        id="start"
+        aria-label="Welcome to GitPeach Desktop"
+        aria-describedby="start-description"
+      >
+        <div className="start-content">
+          <h1 className="welcome-title">
+            Welcome to <span>GitPeach Desktop</span>
+          </h1>
+          <p id="start-description" className="welcome-text">
+            This installation uses Git Credential Manager for HTTPS
+            authentication. GitPeach Desktop does not store an account or access
+            token of its own.
+          </p>
+          <div className="welcome-main-buttons">
+            <Button type="submit" onClick={this.skip} autoFocus={true}>
+              Continue
+            </Button>
+          </div>
+        </div>
+
+        <div className="start-footer">
+          <p>
+            Install and configure{' '}
+            <LinkButton uri="https://gh.io/gcm">
+              Git Credential Manager
+            </LinkButton>{' '}
+            before cloning or accessing a private repository over HTTPS.
+          </p>
+          <p>
+            GitPeach Desktop sends usage metrics to improve the product and
+            inform feature decisions.{' '}
             <LinkButton uri={SamplesURL}>
               Learn more about user metrics.
             </LinkButton>

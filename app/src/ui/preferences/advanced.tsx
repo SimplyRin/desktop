@@ -9,10 +9,14 @@ interface IAdvancedPreferencesProps {
   readonly useWindowsOpenSSH: boolean
   readonly optOutOfUsageTracking: boolean
   readonly useExternalCredentialHelper: boolean
+  readonly useExternalCredentialHelperForAllHosts: boolean
   readonly repositoryIndicatorsEnabled: boolean
   readonly onUseWindowsOpenSSHChanged: (checked: boolean) => void
   readonly onOptOutofReportingChanged: (checked: boolean) => void
   readonly onUseExternalCredentialHelperChanged: (checked: boolean) => void
+  readonly onUseExternalCredentialHelperForAllHostsChanged: (
+    checked: boolean
+  ) => void
   readonly onRepositoryIndicatorsEnabledChanged: (enabled: boolean) => void
 }
 
@@ -20,6 +24,7 @@ interface IAdvancedPreferencesState {
   readonly optOutOfUsageTracking: boolean
   readonly canUseWindowsSSH: boolean
   readonly useExternalCredentialHelper: boolean
+  readonly useExternalCredentialHelperForAllHosts: boolean
 }
 
 export class Advanced extends React.Component<
@@ -33,6 +38,8 @@ export class Advanced extends React.Component<
       optOutOfUsageTracking: this.props.optOutOfUsageTracking,
       canUseWindowsSSH: false,
       useExternalCredentialHelper: this.props.useExternalCredentialHelper,
+      useExternalCredentialHelperForAllHosts:
+        this.props.useExternalCredentialHelperForAllHosts,
     }
   }
 
@@ -60,6 +67,15 @@ export class Advanced extends React.Component<
 
     this.setState({ useExternalCredentialHelper: value })
     this.props.onUseExternalCredentialHelperChanged(value)
+  }
+
+  private onUseExternalCredentialHelperForAllHostsChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const value = event.currentTarget.checked
+
+    this.setState({ useExternalCredentialHelperForAllHosts: value })
+    this.props.onUseExternalCredentialHelperForAllHostsChanged(value)
   }
 
   private onRepositoryIndicatorsEnabledChanged = (
@@ -129,10 +145,14 @@ export class Advanced extends React.Component<
           <Checkbox
             label={'Use Git Credential Manager'}
             value={
-              this.state.useExternalCredentialHelper
+              this.state.useExternalCredentialHelper ||
+              this.state.useExternalCredentialHelperForAllHosts
                 ? CheckboxValue.On
                 : CheckboxValue.Off
             }
+            // Delegating GitHub hosts implies delegating everything else, so
+            // this can't be turned off while that's on.
+            disabled={this.state.useExternalCredentialHelperForAllHosts}
             onChange={this.onUseExternalCredentialHelperChanged}
             ariaDescribedBy="use-external-credential-helper-description"
           />
@@ -147,6 +167,33 @@ export class Advanced extends React.Component<
               </LinkButton>{' '}
               for private repositories outside of GitHub.com. This feature is
               experimental and subject to change.
+            </p>
+          </div>
+        </div>
+        <div className="advanced-section">
+          <Checkbox
+            label={'Use Git Credential Manager for GitHub.com as well'}
+            value={
+              this.state.useExternalCredentialHelperForAllHosts
+                ? CheckboxValue.On
+                : CheckboxValue.Off
+            }
+            onChange={this.onUseExternalCredentialHelperForAllHostsChanged}
+            ariaDescribedBy="use-external-credential-helper-all-hosts-description"
+          />
+          <div
+            id="use-external-credential-helper-all-hosts-description"
+            className="settings-description"
+          >
+            <p>
+              Delegate GitHub.com and GitHub Enterprise authentication to Git
+              Credential Manager too. GitPeach Desktop will not ask you to sign
+              in to a GitHub account and will not store an account token of its
+              own.
+            </p>
+            <p>
+              Install and configure Git Credential Manager before cloning or
+              accessing a private repository over HTTPS.
             </p>
           </div>
         </div>

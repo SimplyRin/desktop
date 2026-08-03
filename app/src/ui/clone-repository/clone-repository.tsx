@@ -47,6 +47,13 @@ interface ICloneRepositoryProps {
   readonly onTabSelected: (tab: CloneRepositoryTab) => void
 
   /**
+   * Whether HTTPS authentication is fully delegated to Git Credential Manager.
+   * The GitHub.com and Enterprise tabs list repositories for a signed-in
+   * account, so they're hidden when there is no account to sign in to.
+   */
+  readonly useExternalCredentialHelperForAllHosts: boolean
+
+  /**
    * A map keyed on a user account (GitHub.com or GitHub Enterprise)
    * containing an object with repositories that the authenticated
    * user has explicit permission (:read, :write, or :admin) to access
@@ -269,14 +276,16 @@ export class CloneRepository extends React.Component<
         onDismissed={this.props.onDismissed}
         loading={this.state.loading}
       >
-        <TabBar
-          onTabClicked={this.onTabClicked}
-          selectedIndex={this.props.selectedTab}
-        >
-          <span id="dotcom-tab">GitHub.com</span>
-          <span id="enterprise-tab">GitHub Enterprise</span>
-          <span id="url-tab">URL</span>
-        </TabBar>
+        {!this.props.useExternalCredentialHelperForAllHosts && (
+          <TabBar
+            onTabClicked={this.onTabClicked}
+            selectedIndex={this.props.selectedTab}
+          >
+            <span id="dotcom-tab">GitHub.com</span>
+            <span id="enterprise-tab">GitHub Enterprise</span>
+            <span id="url-tab">URL</span>
+          </TabBar>
+        )}
 
         {error ? <DialogError>{error.message}</DialogError> : null}
 
