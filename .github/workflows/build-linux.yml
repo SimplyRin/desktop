@@ -275,6 +275,10 @@ jobs:
         continue-on-error: true
 
       - name: Run tests
+        # Skipped on branch pushes - they never gate the build (every command
+        # below swallows its failure), so they only add time. Still run for
+        # pull requests, tags and manual/called runs.
+        if: ${{ !(github.event_name == 'push' && github.ref_type == 'branch') }}
         run: |
           # Set Git environment for dugite
           export GIT_EXEC_PATH="$(git --exec-path 2>/dev/null || dirname "$(which git)")"

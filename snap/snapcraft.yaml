@@ -1,5 +1,4 @@
 name: gitpeach-desktop
-version: '3.5.2'
 summary: Simple collaboration from your desktop
 description: |
   GitPeach Desktop application for simple collaboration
@@ -7,14 +6,32 @@ description: |
 base: core24
 confinement: strict
 
+# The snap version is read off the .deb that the build step drops in here, so
+# it always matches app/package.json rather than a hardcoded value.
+adopt-info: gitpeach-desktop
+
 parts:
   gitpeach-desktop:
     plugin: dump
     source: ./
     override-build: |
-      dpkg -x $SNAPCRAFT_PART_SRC/gitpeach-desktop_3.5.2_amd64.deb $SNAPCRAFT_PART_INSTALL
-      chmod 0755 $SNAPCRAFT_PART_INSTALL/usr/lib/gitpeach-desktop/chrome-sandbox
-      sed -i 's/Icon=gitpeach-desktop/Icon=\/usr\/share\/icons\/hicolor\/256x256\/apps\/gitpeach-desktop.png/' $SNAPCRAFT_PART_INSTALL/usr/share/applications/gitpeach-desktop.desktop
+      # The build step copies whatever dist/*.deb it produced in here. Don't
+      # assume a file name - electron-builder and electron-installer-debian
+      # name it differently.
+      deb=$(find "$SNAPCRAFT_PART_SRC" -maxdepth 1 -name '*.deb' | sort | head -n 1)
+
+      if [ -z "$deb" ]; then
+        echo "No .deb found in $SNAPCRAFT_PART_SRC" >&2
+        ls -la "$SNAPCRAFT_PART_SRC" >&2
+        exit 1
+      fi
+
+      echo "Building snap from $deb"
+      craftctl set version="$(dpkg-deb -f "$deb" Version)"
+
+      dpkg -x "$deb" "$SNAPCRAFT_PART_INSTALL"
+      chmod 0755 "$SNAPCRAFT_PART_INSTALL/usr/lib/gitpeach-desktop/chrome-sandbox"
+      sed -i 's|Icon=gitpeach-desktop|Icon=/usr/share/icons/hicolor/256x256/apps/gitpeach-desktop.png|' "$SNAPCRAFT_PART_INSTALL/usr/share/applications/gitpeach-desktop.desktop"
     stage-packages:
       - libasound2t64
       - libatk-bridge2.0-0t64
