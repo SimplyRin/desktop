@@ -11,7 +11,6 @@ import { sanitizedRepositoryName } from '../add-repository/sanitized-repository-
 import { Octicon } from '../octicons'
 import * as octicons from '../octicons/octicons.generated'
 import { RepositoryPublicationSettings } from '../../models/publish-settings'
-import { enableMultipleEnterpriseAccounts } from '../../lib/feature-flag'
 import { AccountPicker } from '../account-picker'
 
 interface IPublishRepositoryProps {
@@ -149,17 +148,16 @@ export class PublishRepository extends React.Component<
   public render() {
     return (
       <DialogContent>
-        {enableMultipleEnterpriseAccounts() &&
-          this.props.accounts.length > 1 && (
-            <Row>
-              <AccountPicker
-                accounts={this.props.accounts}
-                openButtonClassName="dialog-preferred-focus"
-                selectedAccount={this.props.account}
-                onSelectedAccountChanged={this.props.onSelectedAccountChanged}
-              />
-            </Row>
-          )}
+        {this.props.accounts.length > 1 && (
+          <Row>
+            <AccountPicker
+              accounts={this.props.accounts}
+              openButtonClassName="dialog-preferred-focus"
+              selectedAccount={this.props.account}
+              onSelectedAccountChanged={this.props.onSelectedAccountChanged}
+            />
+          </Row>
+        )}
 
         <Row>
           <TextBox

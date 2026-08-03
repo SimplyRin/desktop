@@ -23,6 +23,11 @@ import { GitHubRepository } from './github-repository'
 import { ValidNotificationPullRequestReview } from '../lib/valid-notification-pull-request-review'
 import { UnreachableCommitsTab } from '../ui/history/unreachable-commits-dialog'
 import { IAPIComment } from '../lib/api'
+import { ISecretScanResult } from '../ui/secret-scanning/push-protection-error-dialog'
+import { BypassReasonType } from '../ui/secret-scanning/bypass-push-protection-dialog'
+import { TerminalOutput, TerminalOutputListener } from '../lib/git'
+import type { IBYOKModel, IBYOKProvider } from '../lib/copilot/byok'
+import { WorktreeEntry } from './worktree'
 
 export enum PopupType {
   RenameBranch = 'RenameBranch',
@@ -47,6 +52,7 @@ export enum PopupType {
   CLIInstalled = 'CLIInstalled',
   GenericGitAuthentication = 'GenericGitAuthentication',
   ExternalEditorFailed = 'ExternalEditorFailed',
+  OpenWithExternalEditor = 'OpenWithExternalEditor',
   OpenShellFailed = 'OpenShellFailed',
   InitializeLFS = 'InitializeLFS',
   LFSAttributeMismatch = 'LFSAttributeMismatch',
@@ -96,18 +102,34 @@ export enum PopupType {
   UnknownAuthors = 'UnknownAuthors',
   TestIcons = 'TestIcons',
   ConfirmRestart = 'ConfirmRestart',
-  GenerateCommitMessageOverrideWarning = 'GenerateCommitMessageOverrideWarning',
-  GenerateCommitMessageDisclaimer = 'GenerateCommitMessageDisclaimer',
-  PushProtectionError = 'PushProtectionError',
   ConfirmCommitFilteredChanges = 'ConfirmCommitFilteredChanges',
   TestAbout = 'TestAbout',
+  TestCLIAction = 'TestCLIAction',
+  TestCopilotSnapshotCard = 'TestCopilotSnapshotCard',
+  PushProtectionError = 'PushProtectionError',
+  BypassPushProtection = 'BypassPushProtection',
+  GenerateCommitMessageOverrideWarning = 'GenerateCommitMessageOverrideWarning',
+  GenerateCommitMessageDisclaimer = 'GenerateCommitMessageDisclaimer',
+  CopilotConflictResolutionDisclaimer = 'CopilotConflictResolutionDisclaimer',
+  HookFailed = 'HookFailed',
+  CommitProgress = 'CommitProgress',
+  AddWorktree = 'AddWorktree',
+  RenameWorktree = 'RenameWorktree',
+  DeleteWorktree = 'DeleteWorktree',
+  EditCopilotBYOKProvider = 'EditCopilotBYOKProvider',
+  EditCopilotBYOKModel = 'EditCopilotBYOKModel',
+  CopilotUserSettings = 'CopilotUserSettings',
+  CopilotCustomProviders = 'CopilotCustomProviders',
+  ConfirmDeleteCopilotBYOKProvider = 'ConfirmDeleteCopilotBYOKProvider',
+  CopilotConflictResolutionAlwaysNudge = 'CopilotConflictResolutionAlwaysNudge',
+  DeleteWorktreeFailed = 'DeleteWorktreeFailed',
 }
 
 interface IBasePopup {
   /**
    * Unique id of the popup that it receives upon adding to the stack.
    */
-  readonly id?: string
+  readonly id?: number
 }
 
 export type PopupDetail =
@@ -138,6 +160,25 @@ export type PopupDetail =
       selection: DiffSelection
     }
   | { type: PopupType.Preferences; initialSelectedTab?: PreferencesTab }
+  | {
+      type: PopupType.EditCopilotBYOKProvider
+      provider: IBYOKProvider | null
+    }
+  | {
+      type: PopupType.EditCopilotBYOKModel
+      model: IBYOKModel | null
+      otherModelIds: ReadonlyArray<string>
+      onSave: (model: IBYOKModel) => void
+    }
+  | {
+      type: PopupType.CopilotUserSettings
+      account: Account
+    }
+  | { type: PopupType.CopilotCustomProviders }
+  | {
+      type: PopupType.ConfirmDeleteCopilotBYOKProvider
+      provider: IBYOKProvider
+    }
   | {
       type: PopupType.RepositorySettings
       repository: Repository
@@ -185,6 +226,7 @@ export type PopupDetail =
       onSubmit: (username: string, password: string) => void
       onDismiss: () => void
     }
+  | { type: PopupType.OpenWithExternalEditor }
   | {
       type: PopupType.ExternalEditorFailed
       message: string
@@ -431,26 +473,84 @@ export type PopupDetail =
     }
   | { type: PopupType.ConfirmRestart }
   | {
-      type: PopupType.GenerateCommitMessageOverrideWarning
-      repository: Repository
-      filesSelected: ReadonlyArray<WorkingDirectoryFileChange>
-    }
-  | {
-      type: PopupType.GenerateCommitMessageDisclaimer
-      repository: Repository
-      filesSelected: ReadonlyArray<WorkingDirectoryFileChange>
-    }
-  | {
-      type: PopupType.PushProtectionError
-      secrets: ReadonlyArray<any>
-    }
-  | {
       type: PopupType.ConfirmCommitFilteredChanges
       onCommitAnyway: () => void
       showFilesToBeCommitted: () => void
     }
   | {
       type: PopupType.TestAbout
+    }
+  | {
+      type: PopupType.TestCLIAction
+    }
+  | {
+      type: PopupType.TestCopilotSnapshotCard
+    }
+  | {
+      type: PopupType.PushProtectionError
+      secrets: ReadonlyArray<ISecretScanResult>
+    }
+  | {
+      type: PopupType.BypassPushProtection
+      secret: ISecretScanResult
+      bypassPushProtection: (
+        secret: ISecretScanResult,
+        reason: BypassReasonType
+      ) => void
+      onDismissed: () => void
+    }
+  | {
+      type: PopupType.GenerateCommitMessageOverrideWarning
+      repository: Repository
+      filesSelected: ReadonlyArray<WorkingDirectoryFileChange>
+    }
+  | {
+      type: PopupType.GenerateCommitMessageDisclaimer
+      // Same parameters as PopupType.GenerateCommitMessageOverrideWarning because
+      // from this popup we will trigger the commit message generation too.
+      repository: Repository
+      filesSelected: ReadonlyArray<WorkingDirectoryFileChange>
+    }
+  | {
+      type: PopupType.CopilotConflictResolutionDisclaimer
+      repository: Repository
+    }
+  | {
+      type: PopupType.CopilotConflictResolutionAlwaysNudge
+      repository: Repository
+    }
+  | {
+      type: PopupType.HookFailed
+      hookName: string
+      terminalOutput: TerminalOutput
+      resolve: (value: 'abort' | 'ignore') => void
+    }
+  | {
+      type: PopupType.CommitProgress
+      subscribeToCommitOutput: TerminalOutputListener
+    }
+  | {
+      type: PopupType.AddWorktree
+      repository: Repository
+      initialBranchName?: string
+      initialWorktreeName?: string
+    }
+  | {
+      type: PopupType.RenameWorktree
+      repository: Repository
+      worktreePath: string
+    }
+  | {
+      type: PopupType.DeleteWorktree
+      repository: Repository
+      worktreePath: string
+    }
+  | {
+      type: PopupType.DeleteWorktreeFailed
+      repository: Repository
+      worktreePath: string
+      error: Error
+      originalWorktree: WorktreeEntry | null
     }
 
 export type Popup = IBasePopup & PopupDetail
