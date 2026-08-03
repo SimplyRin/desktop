@@ -460,6 +460,15 @@ jobs:
               fi
             fi
           done
+
+          # Every command above swallows its own failure, so without this the
+          # job carries on and only blows up later in "Build Snap package"
+          # with a confusing "no .deb found" from snapcraft. Fail here, where
+          # the packaging output that explains why is directly above.
+          if ! ls dist/*.deb >/dev/null 2>&1; then
+            echo "ERROR: packaging produced no .deb in dist/ - see the output above for the cause"
+            exit 1
+          fi
         env:
           NODE_ENV: production
           SKIP_POSTINSTALL: 1
@@ -472,10 +481,15 @@ jobs:
 
           # Copy the generated .deb file to snap directory
           mkdir -p snap
-          cp dist/*.deb snap/ || echo "No .deb file found in dist/"
+          if ! ls dist/*.deb >/dev/null 2>&1; then
+            echo "ERROR: no .deb in dist/ to build the snap from"
+            ls -la dist/ || true
+            exit 1
+          fi
+          cp dist/*.deb snap/
 
           # Verify the .deb file exists in snap directory
-          ls -la snap/*.deb || echo "No .deb file in snap directory"
+          ls -la snap/*.deb
 
           # Build the Snap package using snapcraft in destructive mode to avoid LXD
           cd snap
