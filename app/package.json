@@ -1,19 +1,19 @@
 {
-  "name": "desktop",
-  "productName": "GitHub Desktop",
-  "bundleID": "com.github.GitHubClient",
-  "companyName": "GitHub, Inc.",
+  "name": "gitpeach-desktop",
+  "productName": "GitPeach Desktop",
+  "bundleID": "net.simplyrin.GitPeachClient",
+  "companyName": "SimplyRin",
   "version": "3.6.4-beta1",
   "main": "./main.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/desktop/desktop.git"
+    "url": "https://github.com/SimplyRin/desktop.git"
   },
   "description": "Simple collaboration from your desktop",
   "author": {
-    "name": "GitHub, Inc.",
-    "email": "opensource+desktop@github.com",
-    "url": "https://desktop.github.com/"
+    "name": "SimplyRin",
+    "email": "contact@simplyrin.net",
+    "url": "https://github.com/SimplyRin/desktop"
   },
   "license": "MIT",
   "dependencies": {
@@ -40,9 +40,9 @@
     "electron-window-state": "^5.0.3",
     "event-kit": "^2.0.0",
     "focus-trap-react": "^8.1.0",
-    "fs-admin": "^0.19.0",
+    "fs-admin-forked": "^0.23.0",
     "fuzzaldrin-plus": "^0.6.0",
-    "keytar": "^7.8.0",
+    "keytar-forked": "^7.10.0",
     "lodash": "^4.18.1",
     "marked": "^4.0.10",
     "mem": "^4.3.0",
@@ -69,7 +69,6 @@
     "tslib": "^2.0.0",
     "untildify": "^3.0.2",
     "which": "^5.0.0",
-    "windows-argv-parser": "file:../vendor/windows-argv-parser",
     "winston": "^3.6.0"
   },
   "devDependencies": {

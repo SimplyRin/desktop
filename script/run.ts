@@ -41,5 +41,15 @@ export function run(spawnOptions: SpawnOptions) {
     NODE_ENV: 'development',
   })
 
-  return spawn(binaryPath, [], opts)
+  // Support debugging the Electron main process by setting ELECTRON_INSPECT.
+  //  ELECTRON_INSPECT=1 -> uses default 9229
+  //  ELECTRON_INSPECT=<port> -> uses specified port
+  const extraArgs: string[] = []
+  const inspect = process.env.ELECTRON_INSPECT
+  if (inspect) {
+    const port = inspect === '1' || inspect === '' ? '9229' : inspect
+    extraArgs.push(`--inspect=${port}`)
+  }
+
+  return spawn(binaryPath, extraArgs, opts)
 }

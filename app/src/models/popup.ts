@@ -101,6 +101,7 @@ export enum PopupType {
   PullRequestComment = 'PullRequestComment',
   UnknownAuthors = 'UnknownAuthors',
   TestIcons = 'TestIcons',
+  ConfirmRestart = 'ConfirmRestart',
   ConfirmCommitFilteredChanges = 'ConfirmCommitFilteredChanges',
   TestAbout = 'TestAbout',
   TestCLIAction = 'TestCLIAction',
@@ -470,6 +471,7 @@ export type PopupDetail =
   | {
       type: PopupType.TestIcons
     }
+  | { type: PopupType.ConfirmRestart }
   | {
       type: PopupType.ConfirmCommitFilteredChanges
       onCommitAnyway: () => void
@@ -550,4 +552,5 @@ export type PopupDetail =
       error: Error
       originalWorktree: WorktreeEntry | null
     }
+
 export type Popup = IBasePopup & PopupDetail

@@ -41,6 +41,9 @@ if (process.env.NODE_ENV === 'production') {
 } else {
   const rendererConfig = configs[1]
   const compiler = webpack(rendererConfig)
+  if (!compiler) {
+    throw new Error('Failed to create webpack compiler')
+  }
   const port = getPortOrDefault()
   const message = 'Could not find public path from configuration'
 

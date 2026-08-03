@@ -20,3 +20,12 @@ junit*.xml
 *.swp
 tslint-rules/
 playwright-videos/
+script/release_notes.txt
+
+snap/local/
+snap/parts/
+snap/prime/
+snap/stage/
+snap/*.snap
+snap/*.debug
+

@@ -1,6 +1,6 @@
 import * as Path from 'path'
 
-import * as fsAdmin from 'fs-admin'
+import * as fsAdmin from 'fs-admin-forked'
 import { mkdir, readlink, symlink, unlink } from 'fs/promises'
 
 /** The path for the installed command line tool. */
@@ -42,7 +42,7 @@ function removeExistingSymlink(asAdmin: boolean) {
       if (error !== null) {
         reject(
           new Error(
-            `Failed to remove file at ${InstalledCLIPath}. Authorization of GitHub Desktop Helper is required.`
+            `Failed to remove file at ${InstalledCLIPath}. Authorization of GitPeach Desktop Helper is required.`
           )
         )
         return

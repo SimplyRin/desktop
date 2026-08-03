@@ -3,7 +3,7 @@ import { DesktopFakeRepository } from '../../lib/desktop-fake-repository'
 import { ReleaseNote } from '../../models/release-notes'
 import { Dialog, DialogContent } from '../dialog'
 import { RichText } from '../lib/rich-text'
-import Confetti from 'react-confetti'
+// import Confetti from 'react-confetti'
 import { Emoji } from '../../lib/emoji'
 
 interface IThankYouProps {
@@ -56,8 +56,10 @@ export class ThankYou extends React.Component<IThankYouProps, IThankYouState> {
   private renderConfetti() {
     const { confettiHost } = this.state
     if (confettiHost) {
-      const { left, top } = this.state.confettiRect ?? { left: 0, top: 0 }
+      // const { left, top } = this.state.confettiRect ?? { left: 0, top: 0 }
 
+      return null
+      /*
       return (
         <Confetti
           recycle={false}
@@ -67,18 +69,21 @@ export class ThankYou extends React.Component<IThankYouProps, IThankYouState> {
           style={{ left, top }}
         />
       )
+      */
     }
 
     return undefined
   }
 
   private updateConfettiRect = (e: Event) => {
+    /*
     if (e.currentTarget instanceof HTMLElement) {
       const { offsetLeft: x, offsetTop: y } = e.currentTarget
       const { innerWidth: w, innerHeight: h } = window
       const confettiRect = new DOMRect(-Math.round(x), -Math.round(y), w, h)
       this.setState({ confettiRect })
     }
+    */
   }
 
   private onDialogRef = (dialog: HTMLDialogElement | null) => {
@@ -91,7 +96,7 @@ export class ThankYou extends React.Component<IThankYouProps, IThankYouState> {
       this.props.latestVersion !== null ? ` ${this.props.latestVersion}` : ''
     const thankYouNote = (
       <>
-        Thanks so much for all your hard work on GitHub Desktop{version}. We're
+        Thanks so much for all your hard work on GitPeach Desktop{version}. We're
         so grateful for your willingness to contribute and make the app better
         for everyone!
       </>

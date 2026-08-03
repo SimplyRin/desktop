@@ -243,7 +243,7 @@ These shells are currently supported:
  - [Konsole](https://konsole.kde.org/)
  - [XTerm](http://invisible-island.net/xterm/)
  - [Terminology](https://www.enlightenment.org/docs/apps/terminology.md)
- - [Ghostty](https://ghostty.org/)
+ - [Black Box](https://gitlab.gnome.org/raggesilver/blackbox)
 
 These are defined in an enum at the top of the file:
 
@@ -257,6 +257,7 @@ export enum Shell {
   Konsole = 'Konsole',
   Xterm = 'XTerm',
   Terminology = 'Terminology',
+  BlackBox = 'Black Box',
 }
 ```
 

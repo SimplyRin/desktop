@@ -3,7 +3,7 @@
     "type": "git",
     "url": "https://github.com/desktop/desktop.git"
   },
-  "description": "GitHub Desktop build dependencies",
+  "description": "GitPeach Desktop build dependencies",
   "scripts": {
     "cli": "ts-node app/src/cli/main.ts",
     "check:eslint": "tsc -P eslint-rules/",
@@ -21,7 +21,7 @@
     "test:e2e:run": "yarn test:e2e:run:packaged",
     "test:e2e:run:packaged": "npx playwright test --config app/test/e2e/playwright.config.ts",
     "test:e2e:run:unpackaged": "cross-env DESKTOP_E2E_APP_MODE=unpackaged npx playwright test --config app/test/e2e/playwright.config.ts",
-    "postinstall": "ts-node -P script/tsconfig.json script/post-install.ts",
+    "postinstall": "node -e \"if(process.env.SKIP_POSTINSTALL === '1' || process.env.CI === 'true'){console.log('Postinstall skipped due to environment settings');}else{try{require('child_process').execSync('ts-node -P script/tsconfig.json script/post-install.ts', {stdio:'inherit'})}catch(e){console.log('Postinstall failed but continuing:', e.message)}}\"",
     "start": "cross-env NODE_ENV=development ts-node -P script/tsconfig.json script/start.ts",
     "start:prod": "cross-env NODE_ENV=production ts-node -P script/tsconfig.json script/start.ts",
     "compile:dev": "cross-env NODE_ENV=development TS_NODE_PROJECT=script/tsconfig.json webpack --config app/webpack.development.ts",
@@ -29,6 +29,7 @@
     "build:dev": "yarn compile:dev && cross-env NODE_ENV=development ts-node -P script/tsconfig.json script/build.ts",
     "build:prod": "yarn compile:prod && cross-env NODE_ENV=production ts-node -P script/tsconfig.json script/build.ts",
     "package": "ts-node -P script/tsconfig.json script/package.ts",
+    "electron-builder": "electron-builder",
     "generate-octicons": "ts-node -P script/tsconfig.json script/generate-octicons.ts",
     "compile:script": "tsc -P script/tsconfig.json",
     "lint": "yarn prettier && yarn lint:src",
@@ -50,9 +51,9 @@
     "validate-changelog": "ts-node -P script/tsconfig.json script/validate-changelog.ts"
   },
   "author": {
-    "name": "GitHub, Inc.",
-    "email": "opensource+desktop@github.com",
-    "url": "https://desktop.github.com/"
+    "name": "SimplyRin",
+    "email": "contact@simplyrin.net",
+    "url": "https://github.com/SimplyRin/desktop"
   },
   "license": "MIT",
   "engines": {
@@ -60,7 +61,15 @@
     "yarn": ">= 1.9"
   },
   "resolutions": {
-    "@types/react-css-transition-replace/@types/react": "^16.14.62"
+    "@types/react-css-transition-replace/@types/react": "^16.14.62",
+    "postinstall-postinstall": "^2.1.0",
+    "minimatch": "^3.0.5",
+    "@types/minimatch": "^3.0.5",
+    "@types/react-addons-transition-group/@types/react": "^16.14.62",
+    "@types/react": "^16.14.62",
+    "electron-builder": "25.1.8",
+    "string-width": "^4.2.3",
+    "yargs/string-width": "^4.2.3"
   },
   "dependencies": {
     "@azure/storage-blob": "^12.25.0",
@@ -88,6 +97,7 @@
     "jsdom": "^26.0.0",
     "legal-eagle": "0.16.0",
     "mini-css-extract-plugin": "^2.9.1",
+    "node-gyp": "^11.0.0",
     "parse-dds": "^1.2.1",
     "prettier": "^2.6.0",
     "printenvz": "file:./vendor/printenvz",
@@ -104,7 +114,10 @@
     "webpack-bundle-analyzer": "^4.5.0",
     "webpack-dev-middleware": "^5.3.4",
     "webpack-hot-middleware": "^2.25.1",
-    "webpack-merge": "^6.0.1"
+    "webpack-merge": "^6.0.1",
+    "xml2js": "^0.5.0",
+    "xvfb-maybe": "^0.2.1",
+    "yaml": "^2.7.0"
   },
   "devDependencies": {
     "@github/markdownlint-github": "^0.1.0",
@@ -126,6 +139,7 @@
     "@types/lodash": "^4.14.178",
     "@types/marked": "^4.0.1",
     "@types/memoize-one": "^3.1.1",
+    "@types/minimatch": "^3.0.5",
     "@types/minimist": "^1.2.5",
     "@types/mri": "^1.1.0",
     "@types/node": "22.10.9",
@@ -153,17 +167,27 @@
     "@types/webpack": "^5.28.5",
     "@types/webpack-bundle-analyzer": "^4.7.0",
     "@types/webpack-hot-middleware": "^2.25.9",
+    "@types/webpack-merge": "^5.0.0",
+    "@types/xml2js": "^0.4.11",
     "diff": "^8.0.3",
     "electron": "42.0.1",
+    "electron-builder": "25.1.8",
     "electron-packager": "^17.1.1",
     "electron-winstaller": "^5.0.0",
     "eslint-plugin-github": "^5.1.5",
     "markdownlint-cli": "^0.32.2",
     "node-test-github-reporter": "^1.2.0",
+    "patch-package": "^8.0.0",
     "playwright": "^1.58.2",
     "reserved-words": "^0.1.2",
     "tsconfig-paths": "^3.9.0",
     "tsx": "^4.19.3",
     "webpack-cli": "^6.0.1"
-  }
+  },
+  "optionalDependencies": {
+    "electron-installer-debian": "3.2.0",
+    "electron-installer-redhat": "3.4.0",
+    "electron-winstaller": "^5.0.0"
+  },
+  "packageManager": "yarn@1.22.19+sha1.4ba7fc5c6e704fce2066ecbfb0b0d8976fe62447"
 }

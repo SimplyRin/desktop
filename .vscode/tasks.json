@@ -1,0 +1,19 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Compile (dev)",
+      "type": "shell",
+      "command": "yarn compile:dev",
+      "problemMatcher": ["$tsc"],
+      "group": "build"
+    },
+    {
+      "label": "Build App (dev)",
+      "type": "shell",
+      "command": "yarn build:dev",
+      "dependsOn": ["Compile (dev)"],
+      "problemMatcher": []
+    }
+  ]
+}

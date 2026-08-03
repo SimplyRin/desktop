@@ -44,6 +44,10 @@ import {
 import { buildSpellCheckMenu } from './menu/build-spell-check-menu'
 import { getMainGUID, saveGUIDFile } from '../lib/get-main-guid'
 import {
+  readTitleBarConfigFileSync,
+  saveTitleBarConfigFile,
+} from '../lib/get-title-bar-config'
+import {
   getNotificationsPermission,
   requestNotificationsPermission,
   showNotification,
@@ -104,9 +108,9 @@ const protocolLauncherArg = '--protocol-launcher'
 
 const possibleProtocols = new Set(['x-github-client'])
 if (__DEV_SECRETS__) {
-  possibleProtocols.add('x-github-desktop-dev-auth')
+  possibleProtocols.add('x-gitpeach-desktop-dev-auth')
 } else {
-  possibleProtocols.add('x-github-desktop-auth')
+  possibleProtocols.add('x-gitpeach-desktop-auth')
 }
 // Also support Desktop Classic's protocols.
 if (__DARWIN__) {
@@ -157,8 +161,9 @@ if (!handlingSquirrelEvent) {
 initializeDesktopNotifications()
 
 function handleAppURL(url: string) {
-  log.info('Processing protocol url')
+  log.info(`Processing protocol url: ${url}`)
   const action = parseAppURL(url)
+  log.info(`Parsed action: ${JSON.stringify(action)}`)
   onDidLoad(window => {
     // This manual focus call _shouldn't_ be necessary, but is for Chrome on
     // macOS. See https://github.com/desktop/desktop/issues/973.
@@ -274,9 +279,41 @@ async function handleCommandLineArguments(argv: string[]) {
     } else {
       log.error(`Encountered --protocol-launcher without app url`)
     }
-    // If --protocol-launcher is present we always want to bail and not
-    // risk a smuggled cli switch
-    return
+  } else if (__LINUX__) {
+    // we expect this call to have several parameters before the URL we want,
+    // so we should filter out the program name as well as any parameters that
+    // look like arguments to Electron
+    log.info(`Linux command line args: ${JSON.stringify(argv)}`)
+    log.info(`Parsed args: ${JSON.stringify(args)}`)
+    
+    // Look for protocol URLs in all parsed arguments, including named ones
+    const prefixes = Array.from(possibleProtocols, p => `${p}://`)
+    let foundProtocolUrl = null
+    
+    // Check in positional arguments first
+    for (const arg of args._) {
+      if (typeof arg === 'string' && prefixes.some(p => arg.startsWith(p))) {
+        foundProtocolUrl = arg
+        break
+      }
+    }
+    
+    // If not found in positional args, check in named arguments
+    if (!foundProtocolUrl) {
+      for (const [key, value] of Object.entries(args)) {
+        if (key !== '_' && typeof value === 'string' && prefixes.some(p => value.startsWith(p))) {
+          foundProtocolUrl = value
+          break
+        }
+      }
+    }
+    
+    log.info(`Found protocol URL: ${foundProtocolUrl}`)
+    if (foundProtocolUrl) {
+      handleAppURL(foundProtocolUrl)
+    }
+  } else if (args._.length > 1) {
+    handleAppURL(args._[1])
   }
 
   if (typeof args['cli-open'] === 'string') {
@@ -519,6 +556,11 @@ app.on('ready', () => {
     mainWindow?.quitAndInstallUpdate()
   )
 
+  ipcMain.on('restart-app', () => {
+    app.relaunch()
+    app.exit()
+  })
+
   ipcMain.on('quit-app', () => app.quit())
 
   ipcMain.on('minimize-window', () => mainWindow?.minimizeWindow())
@@ -711,6 +753,16 @@ app.on('ready', () => {
   ipcMain.handle('get-guid', () => getMainGUID())
 
   ipcMain.handle('save-guid', (_, guid) => saveGUIDFile(guid))
+
+  ipcMain.handle(
+    'get-title-bar-style',
+    async () => readTitleBarConfigFileSync().titleBarStyle
+  )
+
+  ipcMain.handle(
+    'save-title-bar-style',
+    async (_, titleBarStyle) => await saveTitleBarConfigFile({ titleBarStyle })
+  )
 
   ipcMain.handle('show-notification', async (_, title, body, userInfo) =>
     showNotification(title, body, userInfo)

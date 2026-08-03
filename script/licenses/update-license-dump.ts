@@ -74,9 +74,9 @@ export async function updateLicenseDump(
   const appVersion = getVersion()
 
   summary[`desktop@${appVersion}`] = {
-    repository: 'https://github.com/desktop/desktop',
+    repository: 'https://github.com/SimplyRin/desktop',
     license: 'MIT',
-    source: `https://github.com/desktop/desktop/blob/release-${appVersion}/LICENSE`,
+    source: `https://github.com/SimplyRin/desktop/blob/release-${appVersion}/LICENSE`,
     sourceText: licenseText,
   }
 

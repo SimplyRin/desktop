@@ -1,0 +1,115 @@
+name: gitpeach-desktop
+version: '3.5.2'
+summary: Simple collaboration from your desktop
+description: |
+  GitPeach Desktop application for simple collaboration
+
+base: core24
+confinement: strict
+
+parts:
+  gitpeach-desktop:
+    plugin: dump
+    source: ./
+    override-build: |
+      dpkg -x $SNAPCRAFT_PART_SRC/gitpeach-desktop_3.5.2_amd64.deb $SNAPCRAFT_PART_INSTALL
+      chmod 0755 $SNAPCRAFT_PART_INSTALL/usr/lib/gitpeach-desktop/chrome-sandbox
+      sed -i 's/Icon=gitpeach-desktop/Icon=\/usr\/share\/icons\/hicolor\/256x256\/apps\/gitpeach-desktop.png/' $SNAPCRAFT_PART_INSTALL/usr/share/applications/gitpeach-desktop.desktop
+    stage-packages:
+      - libasound2t64
+      - libatk-bridge2.0-0t64
+      - libatk1.0-0t64
+      - libatspi2.0-0t64
+      - libavahi-client3
+      - libavahi-common3
+      - libbrotli1
+      - libcairo-gobject2
+      - libcairo2
+      - libcups2t64
+      - libcurl3t64-gnutls
+      - libdatrie1
+      - libdrm-amdgpu1
+      - libdrm-intel1
+      - libdrm-radeon1
+      - libdrm2
+      - libepoxy0
+      - libffi8
+      - libfontconfig1
+      - libfreetype6
+      - libfribidi0
+      - libgbm1
+      - libgdk-pixbuf-2.0-0
+      - libglapi-mesa
+      - libgraphite2-3
+      - libgtk-3-0t64
+      - libharfbuzz0b
+      - libhogweed6t64
+      - libicu74
+      - libjpeg-turbo8
+      - libldap2
+      - libllvm19
+      - libnettle8t64
+      - libnghttp2-14
+      - libnspr4
+      - libnss3
+      - libpango-1.0-0
+      - libpangocairo-1.0-0
+      - libpangoft2-1.0-0
+      - libpciaccess0
+      - libpixman-1-0
+      - libpng16-16t64
+      - libpsl5t64
+      - librtmp1
+      - libsasl2-2
+      - libsecret-1-0
+      - libsensors5
+      - libssh-4
+      - libssl3t64
+      - libthai0
+      - libunistring5
+      - libwayland-client0
+      - libwayland-cursor0
+      - libwayland-egl1
+      - libwayland-server0
+      - libx11-6
+      - libx11-xcb1
+      - libxau6
+      - libxcb-dri2-0
+      - libxcb-dri3-0
+      - libxcb-present0
+      - libxcb-randr0
+      - libxcb-render0
+      - libxcb-shm0
+      - libxcb-sync1
+      - libxcb-xfixes0
+      - libxcb1
+      - libxcomposite1
+      - libxcursor1
+      - libxdamage1
+      - libxdmcp6
+      - libxext6
+      - libxfixes3
+      - libxi6
+      - libxinerama1
+      - libxkbcommon0
+      - libxml2
+      - libxrandr2
+      - libxrender1
+      - libxshmfence1
+      - mesa-libgallium
+
+apps:
+  gitpeach-desktop:
+    command: usr/bin/gitpeach-desktop --no-sandbox
+    desktop: usr/share/applications/gitpeach-desktop.desktop
+    plugs:
+      - desktop
+      - desktop-legacy
+      - home
+      - wayland
+      - x11
+      - network
+      - browser-support
+      - opengl
+      - removable-media
+      - password-manager-service

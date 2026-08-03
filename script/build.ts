@@ -2,9 +2,8 @@
 /// <reference path="./globals.d.ts" />
 
 import * as cp from 'child_process'
-import packager, { OfficialArch, OsxNotarizeOptions } from 'electron-packager'
+import packager, { OsxNotarizeOptions } from 'electron-packager'
 import frontMatter from 'front-matter'
-import * as os from 'os'
 import * as path from 'path'
 import { getPrintenvzPath } from 'printenvz'
 import { getProxyCommandPath } from 'process-proxy'
@@ -141,17 +140,19 @@ function packageApp() {
     )
   }
 
-  const toPackageArch = (targetArch: string | undefined): OfficialArch => {
-    if (targetArch === undefined) {
-      targetArch = os.arch()
+  const getPackageArch = (): 'arm64' | 'x64' | 'armv7l' => {
+    const arch = process.env.npm_config_arch || process.arch
+
+    if (arch === 'arm64' || arch === 'x64') {
+      return arch
     }
 
-    if (targetArch === 'arm64' || targetArch === 'x64') {
-      return targetArch
+    if (arch === 'arm') {
+      return 'armv7l'
     }
 
     throw new Error(
-      `Building Desktop for architecture '${targetArch}' is not supported`
+      `Building Desktop for architecture '${arch}' is not supported. Currently these architectures are supported: arm, arm64, x64`
     )
   }
 
@@ -177,13 +178,18 @@ function packageApp() {
     `Unable to find Assets.car at ${assetsCarPath}`
   )
 
+  // this setting only works for macOS and Windows, so let's clear it now to ensure
+  // the app is working as expected
+  const icon =
+    process.platform === 'linux' ? undefined : join(iconPath, 'icon-logo')
+
   return packager({
     name: getExecutableName(),
     platform: toPackagePlatform(process.platform),
-    arch: toPackageArch(process.env.TARGET_ARCH),
+    arch: getPackageArch(),
     asar: false, // TODO: Probably wanna enable this down the road.
     out: getDistRoot(),
-    icon: join(iconPath, 'icon-logo'),
+    icon,
     extraResource: [assetsCarPath],
     dir: outRoot,
     overwrite: true,
@@ -221,8 +227,8 @@ function packageApp() {
         name: getBundleID(),
         schemes: [
           !isDevelopmentBuild
-            ? 'x-github-desktop-auth'
-            : 'x-github-desktop-dev-auth',
+            ? 'x-gitpeach-desktop-auth'
+            : 'x-gitpeach-desktop-dev-auth',
           'x-github-client',
           'github-mac',
         ],
@@ -468,7 +474,7 @@ function generateLicenseMetadata(outRoot: string) {
   )
 
   const licenseText = readFileSync(chooseALicenseLicense, 'utf8')
-  const licenseWithHeader = `GitHub Desktop uses licensing information provided by choosealicense.com.
+  const licenseWithHeader = `GitPeach Desktop uses licensing information provided by choosealicense.com.
 
 The bundle in available-licenses.json has been generated from a source list provided at https://github.com/github/choosealicense.com, which is made available under the below license:
 

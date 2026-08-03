@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="256" height="256" shape-rendering="crispEdges">
+  <!-- 背景の白丸 (85%) -->
+  <circle cx="8" cy="8" r="6.8" fill="white"/>
+
+  <!-- パレット & フィルタ -->
+  <defs>
+    <style>
+      .p1{fill:#FFB3C1;} /* light peach */
+      .p2{fill:#FF8FA3;} /* mid peach */
+      .p3{fill:#FF6B81;} /* dark peach */
+      .ol{fill:#CC5A71;} /* outline-ish accent */
+      .leaf{fill:#7BC96F;} /* light leaf */
+      .leaf2{fill:#3FA34D;} /* dark leaf */
+      .stem{fill:#8B5E3C;} /* stem */
+      .hi{fill:#FFD9E0;} /* highlight */
+      .sh{fill:#E35F78;} /* inner shadow */
+    </style>
+
+    <!-- 薄い影フィルタ -->
+    <filter id="peachShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0.5" dy="0.5" stdDeviation="0.3" flood-color="black" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+
+  <!-- 桃を縮小 (70%) + 影 -->
+  <g transform="translate(2.4,2.4) scale(0.7)" filter="url(#peachShadow)">
+    <!-- 茎 -->
+    <rect x="7" y="1" width="1" height="1" class="stem"/>
+    <!-- 葉 -->
+    <rect x="6" y="2" width="3" height="1" class="leaf"/>
+    <rect x="6" y="3" width="2" height="1" class="leaf2"/>
+    <!-- 桃本体 -->
+    <rect x="5" y="3" width="6" height="1" class="p2"/>
+    <rect x="4" y="4" width="8" height="1" class="p1"/>
+    <rect x="3" y="5" width="10" height="1" class="p1"/>
+    <rect x="3" y="6" width="10" height="1" class="p1"/>
+    <rect x="2" y="7" width="12" height="1" class="p1"/>
+    <rect x="2" y="8" width="12" height="1" class="p1"/>
+    <rect x="2" y="9" width="12" height="1" class="p1"/>
+    <rect x="3" y="10" width="10" height="1" class="p1"/>
+    <rect x="3" y="11" width="10" height="1" class="p1"/>
+    <rect x="4" y="12" width="8" height="1" class="p2"/>
+    <rect x="5" y="13" width="6" height="1" class="p3"/>
+    <rect x="6" y="14" width="4" height="1" class="p3"/>
+    <!-- ふち -->
+    <rect x="3" y="6" width="1" height="1" class="ol"/>
+    <rect x="12" y="6" width="1" height="1" class="ol"/>
+    <rect x="2" y="7" width="1" height="1" class="ol"/>
+    <rect x="13" y="7" width="1" height="1" class="ol"/>
+    <rect x="2" y="9" width="1" height="1" class="ol"/>
+    <rect x="13" y="9" width="1" height="1" class="ol"/>
+    <rect x="4" y="12" width="1" height="1" class="ol"/>
+    <rect x="11" y="12" width="1" height="1" class="ol"/>
+    <!-- ハイライト -->
+    <rect x="4" y="5" width="2" height="1" class="hi"/>
+    <rect x="5" y="6" width="1" height="1" class="hi"/>
+    <!-- くぼみの影 -->
+    <rect x="7" y="4" width="2" height="1" class="sh"/>
+  </g>
+</svg>

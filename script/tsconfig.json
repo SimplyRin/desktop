@@ -14,7 +14,16 @@
     "sourceMap": false,
     "noEmit": true,
     "strict": true,
-    "types": ["node"]
+    "types": ["node"],
+    "skipLibCheck": true,
+    "typeRoots": [
+      "../types",
+      "./types",
+      "../node_modules/@types",
+      "./node_modules/@types"
+    ]
   },
+  "include": ["*.ts", "**/*.ts"],
+  "exclude": ["node_modules", "../node_modules", "../app", "../out", "../dist"],
   "compileOnSave": false
 }

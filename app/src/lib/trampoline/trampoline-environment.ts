@@ -69,7 +69,7 @@ export const GitUserAgent = memoizeOne(() =>
     })
     .then(v => {
       const suffix = __DEV__ ? `-${__SHA__.substring(0, 10)}` : ''
-      const ghdVersion = `GitHub Desktop/${__APP_VERSION__}${suffix}`
+      const ghdVersion = `GitPeach Desktop/${__APP_VERSION__}${suffix}`
       const { platform, arch } = process
 
       return `git/${v} (${ghdVersion}; ${platform} ${arch})`
@@ -143,6 +143,9 @@ export async function withTrampolineEnv<T>(
         GIT_CONFIG_PARAMETERS: `${gitEnvConfigPrefix}'credential.helper=' 'credential.helper=desktop'`,
 
         GIT_USER_AGENT: await GitUserAgent(),
+        // Prevent Git from trying to read /etc/gitconfig in Snap environments
+        // where it may not be accessible or writable
+        GIT_CONFIG_SYSTEM: process.env.HOME ? `${process.env.HOME}/.gitconfig` : '',
         ...sshEnv,
       })
     } catch (e) {

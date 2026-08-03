@@ -14,8 +14,9 @@
     "sourceMap": true,
     "strict": true,
     "outDir": "./dist",
-    "useUnknownInCatchVariables": false,
-    "declaration": true
+  "useUnknownInCatchVariables": false,
+  "declaration": true,
+  "skipLibCheck": true
   },
   "include": ["lib/**/*.ts"],
   "exclude": ["node_modules", "build"],

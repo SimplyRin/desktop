@@ -19,6 +19,23 @@
       "envFile": ".test.env",
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "name": "Desktop: Main Process Debug",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "yarn",
+      "runtimeArgs": ["start"],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "ELECTRON_INSPECT": "9229",
+        "NODE_ENV": "development"
+      },
+      "console": "integratedTerminal",
+      "autoAttachChildProcesses": true,
+      "skipFiles": ["<node_internals>/**"],
+      "outFiles": ["${workspaceFolder}/out/**/*.js"],
+      "timeout": 60000
     }
   ]
 }
