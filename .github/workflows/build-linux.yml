@@ -193,6 +193,15 @@ jobs:
           echo "Installing root dependencies..."
           yarn install --frozen-lockfile --no-progress || yarn install --no-progress
 
+          # The vendored desktop-notifications install script runs `tsc`, but it
+          # is installed from `app/`, which yarn treats as its own project root -
+          # so this repo's node_modules/.bin is not on PATH and `tsc` falls back
+          # to the runner's global TypeScript. That is now 6.x, which rejects the
+          # vendor tsconfig ("moduleResolution=node10 has been removed"). Put the
+          # repo-pinned TypeScript first so the vendor build is deterministic.
+          export PATH="$GITHUB_WORKSPACE/node_modules/.bin:$PATH"
+          echo "Using tsc: $(command -v tsc) ($(tsc --version))"
+
           # Force install the correct electron-builder version and lock it
           echo "Installing specific electron-builder version..."
           yarn add electron-builder@25.1.8 --dev --exact
