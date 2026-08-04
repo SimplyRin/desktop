@@ -169,6 +169,7 @@
     "@types/webpack-hot-middleware": "^2.25.9",
     "@types/webpack-merge": "^5.0.0",
     "@types/xml2js": "^0.4.11",
+    "app-builder-lib": "25.1.8",
     "diff": "^8.0.3",
     "electron": "42.0.1",
     "electron-builder": "25.1.8",

@@ -202,24 +202,9 @@ jobs:
           export PATH="$GITHUB_WORKSPACE/node_modules/.bin:$PATH"
           echo "Using tsc: $(command -v tsc) ($(tsc --version))"
 
-          # Force install the correct electron-builder version and lock it
-          echo "Installing specific electron-builder version..."
-          yarn add electron-builder@25.1.8 --dev --exact
-
-          # Add resolutions to package.json to prevent version conflicts
-          node -e "
-            const fs = require('fs');
-            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-            pkg.resolutions = pkg.resolutions || {};
-            pkg.resolutions['electron-builder'] = '25.1.8';
-            pkg.resolutions['**/electron-builder'] = '25.1.8';
-            pkg.resolutions['string-width'] = '^4.2.3';
-            pkg.resolutions['yargs/string-width'] = '^4.2.3';
-            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
-          "
-
-          # Reinstall to apply resolutions
-          yarn install --force
+          # electron-builder and its resolution are pinned in package.json, so
+          # the install above already put the right version in place. Adding it
+          # again here only rewrote package.json and the lockfile mid-job.
 
           # Ensure @types/node is installed for TypeScript compilation
           echo "Installing @types/node for TypeScript support..."
@@ -367,31 +352,19 @@ jobs:
           echo "Current dist content before packaging:"
           ls -la dist/ || echo "No dist directory yet"
 
-          # Verify the packaged electron app exists
+          # Verify the packaged electron app exists - this is what packaging
+          # feeds to electron-builder via --prepackaged, so if it is missing
+          # nothing below can work.
           echo "Checking packaged app structure:"
-          ls -la "dist/github-desktop-linux-x64/" || echo "Packaged app directory not found"
+          if ! ls -la "dist/gitpeach-desktop-linux-x64/"; then
+            echo "ERROR: dist/gitpeach-desktop-linux-x64/ not found - the build step did not produce a packaged app"
+            exit 1
+          fi
 
-          # Fix electron-builder yargs dependency chain issue
-          echo "Fixing electron-builder dependency conflicts..."
-          node -e "
-            const fs = require('fs');
-            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-            pkg.resolutions = pkg.resolutions || {};
-            pkg.resolutions['electron-builder'] = '25.1.8';
-            pkg.resolutions['**/electron-builder'] = '25.1.8';
-            pkg.resolutions['string-width'] = '^4.2.3';
-            pkg.resolutions['yargs/string-width'] = '^4.2.3';
-            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
-          "
-
-          # Reinstall to apply resolutions and ensure correct version
-          echo "Reinstalling with dependency resolutions..."
-          yarn install --ignore-scripts --force || true
-
-          # Verify electron-builder version
-          echo "Verifying electron-builder version..."
-          yarn list electron-builder || true
-          npx electron-builder --version || true
+          # Nothing is installed here on purpose. The previous version rewrote
+          # package.json and ran "yarn install --force" right before packaging,
+          # which rebuilt the dependency tree mid-job and left it without
+          # node_modules/.bin/electron-builder.
 
           # Package using the TypeScript script (this will build x64 only)
           echo "Running packaging script..."
@@ -401,30 +374,15 @@ jobs:
           export TARGET_ARCH=x64
           export ELECTRON_BUILDER_ARCH=x64
 
+          # No fallback here on purpose: the previous one re-ran
+          # electron-builder without --prepackaged, which can never work for
+          # this repo (the app is built by electron-packager first) and only
+          # buried the original failure under a second, different one.
           if NODE_ENV=production yarn ts-node --transpile-only -P script/tsconfig.json script/package.ts; then
-            echo "TypeScript packaging succeeded"
+            echo "Packaging script succeeded"
           else
-            echo "TypeScript execution failed, trying alternative..."
-            # Fallback to direct electron-builder execution - ensure correct version
-            echo "Installing specific electron-builder version..."
-            yarn remove electron-builder || true
-            yarn add electron-builder@25.1.8 --dev --exact || true
-            
-            echo "Building packages with electron-builder..."
-            echo "Current working directory: $(pwd)"
-            echo "Config file exists: $(ls -la script/electron-builder-linux.yml || echo 'Config not found')"
-            
-            # Verify version before building
-            echo "Using electron-builder version: $(npx electron-builder --version)"
-            
-            # Try building each target separately for better error isolation
-            echo "Building deb packages..."
-            npx electron-builder --linux deb --x64 --config script/electron-builder-linux.yml --publish=never || echo "deb build failed"
-            
-            echo "Building rpm packages..."
-            npx electron-builder --linux rpm --x64 --config script/electron-builder-linux.yml --publish=never || echo "rpm build failed"
-            
-            echo "Packaging completed"
+            echo "ERROR: packaging script failed - the cause is in its output above"
+            exit 1
           fi
 
           # Verify packages were created and check sizes  
