@@ -30,8 +30,50 @@ parts:
       craftctl set version="$(dpkg-deb -f "$deb" Version)"
 
       dpkg -x "$deb" "$SNAPCRAFT_PART_INSTALL"
-      chmod 0755 "$SNAPCRAFT_PART_INSTALL/usr/lib/gitpeach-desktop/chrome-sandbox"
-      sed -i 's|Icon=gitpeach-desktop|Icon=/usr/share/icons/hicolor/256x256/apps/gitpeach-desktop.png|' "$SNAPCRAFT_PART_INSTALL/usr/share/applications/gitpeach-desktop.desktop"
+
+      echo "Unpacked layout:"
+      find "$SNAPCRAFT_PART_INSTALL" -maxdepth 3 -mindepth 1
+
+      # Locate the app itself rather than assuming a path: electron-builder
+      # installs to /opt/<Product Name>, electron-installer-debian to
+      # /usr/lib/<name>. chrome-sandbox sits next to the executable in both.
+      appdir=$(dirname "$(find "$SNAPCRAFT_PART_INSTALL" -name chrome-sandbox -type f | head -n 1)")
+
+      if [ -z "$appdir" ] || [ "$appdir" = "." ]; then
+        echo "Could not find chrome-sandbox in the unpacked .deb" >&2
+        exit 1
+      fi
+
+      echo "App directory: $appdir"
+
+      # Normalise to a fixed, space-free path so `command` below and the
+      # /usr/bin symlink don't depend on which packager built the .deb.
+      target="$SNAPCRAFT_PART_INSTALL/usr/lib/gitpeach-desktop"
+
+      if [ "$appdir" != "$target" ]; then
+        mkdir -p "$(dirname "$target")"
+        rm -rf "$target"
+        mv "$appdir" "$target"
+        rmdir "$(dirname "$appdir")" 2>/dev/null || true
+      fi
+
+      chmod 0755 "$target/chrome-sandbox"
+
+      # electron-builder ships /usr/bin/<name> as an absolute symlink into
+      # /opt, which resolves against the host - not the snap - at runtime.
+      mkdir -p "$SNAPCRAFT_PART_INSTALL/usr/bin"
+      rm -f "$SNAPCRAFT_PART_INSTALL/usr/bin/gitpeach-desktop"
+      ln -s ../lib/gitpeach-desktop/gitpeach-desktop "$SNAPCRAFT_PART_INSTALL/usr/bin/gitpeach-desktop"
+
+      desktop="$SNAPCRAFT_PART_INSTALL/usr/share/applications/gitpeach-desktop.desktop"
+
+      if [ -f "$desktop" ]; then
+        sed -i 's|^Icon=.*|Icon=/usr/share/icons/hicolor/256x256/apps/gitpeach-desktop.png|' "$desktop"
+      else
+        echo "Expected desktop entry at $desktop" >&2
+        ls -la "$SNAPCRAFT_PART_INSTALL/usr/share/applications" >&2 || true
+        exit 1
+      fi
     stage-packages:
       - libasound2t64
       - libatk-bridge2.0-0t64
